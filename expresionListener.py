@@ -80,12 +80,21 @@ class expresionListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by expresionParser#unario.
-    def enterUnario(self, ctx:expresionParser.UnarioContext):
+    # Enter a parse tree produced by expresionParser#unico.
+    def enterUnico(self, ctx:expresionParser.UnicoContext):
         pass
 
-    # Exit a parse tree produced by expresionParser#unario.
-    def exitUnario(self, ctx:expresionParser.UnarioContext):
+    # Exit a parse tree produced by expresionParser#unico.
+    def exitUnico(self, ctx:expresionParser.UnicoContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#expresionSi.
+    def enterExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#expresionSi.
+    def exitExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
         pass
 
 
