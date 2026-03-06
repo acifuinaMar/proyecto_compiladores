@@ -1,5 +1,4 @@
 grammar expresion;
-
 root
     : expresion+ EOF
     ;
@@ -24,19 +23,23 @@ suma
     : multiplicacion ((SUM | RES) multiplicacion)*
     ;
 multiplicacion
-    : unario ((MUL | DIV) unario)*
+    : unico ((MUL | DIV) unico)*
     ;
-unario
-    : NOT unario
+unico
+    : NOT unico
     | base
     ;
-
+expresionSi
+    : SI PAI expresion PAD PAI expresion PAD
+    | SI PAI expresion PAD PAI expresion PAD SINO PAI expresion PAD
+    ;
 
 // cosas que ya no puedo simplificar mas
 base
     : NUM
     | ID
     | PAI expresion PAD
+    | expresionSi
     ;
 
 // Operadores aritméticos
@@ -66,8 +69,11 @@ AND : '&&' ;
 OR  : '||' ;
 NOT : '!' ;
 
-// Tokens 
+//Condicional
+SI   : 'si' ;
+SINO : 'sino' ;
 
+// Tokens
 NUM : [0-9]+ ;
 ID  : [a-zA-Z][a-zA-Z0-9]* ;
 
