@@ -98,6 +98,24 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#sentencia.
+    def enterSentencia(self, ctx:expresionParser.SentenciaContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#sentencia.
+    def exitSentencia(self, ctx:expresionParser.SentenciaContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#asignacion.
+    def enterAsignacion(self, ctx:expresionParser.AsignacionContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#asignacion.
+    def exitAsignacion(self, ctx:expresionParser.AsignacionContext):
+        pass
+
+
     # Enter a parse tree produced by expresionParser#base.
     def enterBase(self, ctx:expresionParser.BaseContext):
         pass
