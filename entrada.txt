@@ -1,7 +1,7 @@
 program {
-    x = 2
-    y = 3
-    z = x + y * 4
+    x = 5
+    y = 2
+    z = x * y + 3
 
-    (z > 10) && (x < y)
+    si (z > 10) (z) sino (z + 100)
 }
