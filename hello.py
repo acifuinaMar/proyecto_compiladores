@@ -1,3 +1,4 @@
+from visitor import Visitor
 from antlr4 import *
 from antlr4.tree.Trees import Trees
 from antlr4 import ParserRuleContext
@@ -16,12 +17,15 @@ def print_tree(tree, parser, level=0):
     for i in range(tree.getChildCount()):
         print_tree(tree.getChild(i), parser, level + 1)
 
-# ----------- ANTLR normal -----------
 input_stream = FileStream('entrada.txt', encoding='utf-8')
 lexer = expresionLexer(input_stream)
 token_stream = CommonTokenStream(lexer)
 parser = expresionParser(token_stream)
 
 tree = parser.root()
+visitor = Visitor()
+resultado = visitor.visit(tree)
+
+print("\nResultado:", resultado)
 
 print_tree(tree, parser)
