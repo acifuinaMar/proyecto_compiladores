@@ -1,0 +1,3 @@
+program {
+    valor = si (a > 0) ( si (b > 0) ( si (c > 0) (3) ) )
+}

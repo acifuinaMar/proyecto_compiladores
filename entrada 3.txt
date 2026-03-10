@@ -1,0 +1,3 @@
+program {
+    resultado = 10 + si (x > 5) (100) sino (0)
+}
