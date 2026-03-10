@@ -1,1 +1,4 @@
-5+3*2>10 && 4<8
+program {
+    limite = 100
+    esValido = si (limite >= 50 && ! (limite == 0)) (1) sino (0)
+}
