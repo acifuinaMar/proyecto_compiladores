@@ -3,13 +3,9 @@ from expresionVisitor import expresionVisitor
 class Visitor(expresionVisitor):
 
     def __init__(self):
-        # Inciso 5: Pila de Ámbitos usando una lista de diccionarios (Tablas Hash)
-        # El índice 0 siempre será el ámbito GLOBAL.
         self.scopes = [{}] 
         self.tabla_tipos = [{}] 
 
-    # --- FUNCIONES DE APOYO (HELPERS) PARA ÁMBITOS ---
-    
     def push_scope(self):
         """Crea un nuevo ámbito local (al entrar a un bloque {})"""
         self.scopes.append({})
@@ -42,8 +38,6 @@ class Visitor(expresionVisitor):
                 return t_scope[nombre]
         return None
 
-    # --- MÉTODOS VISITORS ---
-
     def visitRoot(self, ctx):
         resultado = None
         for s in ctx.sentencia():
@@ -55,12 +49,9 @@ class Visitor(expresionVisitor):
         tipo = ctx.TIPO().getText()
         valor = self.visit(ctx.expresion()) if ctx.expresion() else None
 
-        # Shadowing y Error de Duplicados:
-        # Revisamos SOLO el ámbito actual (el tope de la pila: index -1)
         if nombre in self.scopes[-1]:
             raise Exception(f"Error Semántico: La variable '{nombre}' ya existe en este ámbito local")
 
-        # Guardamos tipo y valor en el ámbito actual
         self.tabla_tipos[-1][nombre] = tipo
         
         if valor is not None:
@@ -74,7 +65,6 @@ class Visitor(expresionVisitor):
         nombre = ctx.ID().getText()
         valor = self.visit(ctx.expresion())
         
-        # Validamos tipo antes de actualizar
         tipo_declarado = self.get_tipo_var(nombre)
         if not self.validar_tipo(tipo_declarado, valor):
             raise Exception(f"Error de Tipo: '{nombre}' espera {tipo_declarado}")
@@ -123,8 +113,6 @@ class Visitor(expresionVisitor):
         valor = self.visit(ctx.expresion())
         print(valor)
         return valor
-
-    # --- LÓGICA ARITMÉTICA Y LOGICA ---
 
     def visitSuma(self, ctx):
         resultado = self.visit(ctx.multiplicacion(0))
