@@ -1,5 +1,22 @@
 program {
-    string nombre = "Juanito";
-    int edad = 25;
-    print("Hola, ¿Sabia que " + nombre + " tiene " + edad + " años?");
+    int contador = 1;
+    int limite = 3;
+
+    print("--- Inicio del Programa ---");
+
+    while (contador <= limite) {
+        int temp = contador * 10;
+        print("Iteracion numero");
+        print(contador);
+        
+        print("Valor temporal local");
+        print(temp);
+
+        contador = contador + 1;
+    }
+
+    print("--- Fin del ciclo ---");
+    print("Contador final");
+    print(contador);
+ 
 }

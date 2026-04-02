@@ -20,6 +20,7 @@ def print_tree(tree, parser, level=0):
         rule_name = parser.ruleNames[tree.getRuleIndex()]
         print(f"{indent}|_ {rule_name}")
     else:
+        
         print(f"{indent}|_ {tree.getText()}")
 
     for i in range(tree.getChildCount()):
