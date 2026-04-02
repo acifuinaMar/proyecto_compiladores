@@ -1,19 +1,12 @@
 program {
-    x = 5.
-    y = 10.
-    z = 15.
+    int x = 5;
+    int y = 10;
 
-    si (x < y) {
-        x = x + 1.
+    int suma = x + y; 
+    string nombre = "Maryori";
+    float pi = 3.1416;
 
-        si (y < z) {
-            x = x * 2.
-        } sino {
-            x = x - 1.
-        }
-
-        x = x + 3.
-    } sino {
-        x = 0.
-    }
+    pi;
+    nombre;
+    suma;
 }
