@@ -12,6 +12,8 @@ class Visitor(expresionVisitor):
         return resultado
 
     def visitSentencia(self, ctx):
+        if ctx.declaracion():
+            return self.visit(ctx.declaracion())
 
         if ctx.declaracion():
             return self.visit(ctx.declaracion())
@@ -177,6 +179,18 @@ class Visitor(expresionVisitor):
                 raise Exception(f"Variable '{nombre}' no definida")
 
             return self.memory[nombre]
+        
+        if ctx.FLOAT():
+            return float(ctx.FLOAT().getText())
+
+        if ctx.STRING():
+            return ctx.STRING().getText().strip('"')
+
+        if ctx.VERDADERO():
+            return True
+
+        if ctx.FALSO():
+            return False
 
         return self.visit(ctx.expresion())
 
@@ -200,3 +214,22 @@ class Visitor(expresionVisitor):
             resultado = self.visit(s)
 
         return resultado
+    
+    def visitDeclaracion(self, ctx):
+
+        nombre = ctx.ID().getText()
+
+        # Si tiene asignación
+        if ctx.expresion():
+            valor = self.visit(ctx.expresion())
+        else:
+            valor = None
+
+        self.memory[nombre] = valor
+
+        return valor
+    
+    def visitPrintt(self, ctx):
+        valor = self.visit(ctx.expresion())
+        print(valor)
+        return valor

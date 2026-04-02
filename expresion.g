@@ -6,8 +6,8 @@ root
 sentencia
     : declaracion 
     | asignacion FINAL
-    | expresionSi
-    | printt 
+    | expresionSi 
+    | printt
     | expresion FINAL
 ;
 
@@ -57,7 +57,9 @@ unico
 ;
 
 base
-    : NUM
+    : FLOAT
+    | NUM
+    | STRING
     | VERDADERO
     | FALSO
     | ID
@@ -65,7 +67,7 @@ base
 ;
 
 declaracion
-    : TIPO ID expresion FINAL
+    : TIPO ID ASIG expresion FINAL
     | TIPO ID FINAL
 ;
 
@@ -104,13 +106,15 @@ AND : '&&';
 OR  : '||';
 NOT : '!';
 
-// Para imprimir
+//Imprimir
 PRINT : 'print';
 
 // Tipos de datos
 TIPO : 'int' | 'bool' | 'string' | 'float';
 VERDADERO : 'verdadero';
 FALSO : 'falso';
+STRING : '"' .*? '"';
+FLOAT  : [0-9]+ '.' [0-9]+;
 
 // Valores
 NUM : [0-9]+;
