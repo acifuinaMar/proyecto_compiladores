@@ -4,7 +4,9 @@ class Visitor(expresionVisitor):
 
     def __init__(self):
         self.memory = {}
-
+        self.tabla_tipos = {}
+        self.memory = {}
+    
     def visitRoot(self, ctx):
         resultado = None
         for s in ctx.sentencia():
@@ -12,9 +14,6 @@ class Visitor(expresionVisitor):
         return resultado
 
     def visitSentencia(self, ctx):
-        if ctx.declaracion():
-            return self.visit(ctx.declaracion())
-
         if ctx.declaracion():
             return self.visit(ctx.declaracion())
 
@@ -39,28 +38,19 @@ class Visitor(expresionVisitor):
         return None
 
     def visitAsignacion(self, ctx):
-
         nombre = ctx.ID().getText()
         valor = self.visit(ctx.expresion())
 
-        self.memory[nombre] = valor
-        return valor
+        tipo = self.tabla_tipos.get(nombre)
 
-    def visitDeclaracion(self, ctx):
+        if tipo is None:
+            raise Exception(f"Variable {nombre} no declarada")
 
-        nombre = ctx.ID().getText()
-
-        if ctx.expresion():
-            valor = self.visit(ctx.expresion())
-        else:
-            valor = None
+        if not self.validar_tipo(tipo, valor):
+            raise Exception(f"Error de tipo: {nombre} es {tipo} y recibe {type(valor).__name__}")
 
         self.memory[nombre] = valor
-        return valor
 
-    def visitPrintt(self, ctx):
-        valor = self.visit(ctx.expresion())
-        print(valor)
         return valor
 
     def visitExpresion(self, ctx):
@@ -188,19 +178,6 @@ class Visitor(expresionVisitor):
                 raise Exception(f"Variable '{nombre}' no definida")
 
             return self.memory[nombre]
-        
-        if ctx.FLOAT():
-            return float(ctx.FLOAT().getText())
-
-        if ctx.STRING():
-            return ctx.STRING().getText().strip('"')
-
-        if ctx.VERDADERO():
-            return True
-
-        if ctx.FALSO():
-            return False
-
         return self.visit(ctx.expresion())
 
     def visitExpresionSi(self, ctx):
@@ -225,15 +202,20 @@ class Visitor(expresionVisitor):
         return resultado
     
     def visitDeclaracion(self, ctx):
-
         nombre = ctx.ID().getText()
+        tipo = ctx.TIPO().getText()
 
-        # Si tiene asignación
-        if ctx.expresion():
-            valor = self.visit(ctx.expresion())
-        else:
-            valor = None
+        valor = self.visit(ctx.expresion()) if ctx.expresion() else None
 
+        # Guardar tipo
+        self.tabla_tipos[nombre] = tipo
+
+        # Validar tipo
+        if valor is not None:
+            if not self.validar_tipo(tipo, valor):
+                raise Exception(f"Error de tipo: no se puede asignar {type(valor).__name__} a {tipo}")
+
+        # Guardar valor
         self.memory[nombre] = valor
 
         return valor
@@ -261,3 +243,18 @@ class Visitor(expresionVisitor):
             self.visit(ctx.bloque())
             self.visit(actualizacion)
         return None
+    
+    def validar_tipo(self, tipo, valor):
+        if tipo == "int":
+            return isinstance(valor, int) and not isinstance(valor, bool)
+
+        elif tipo == "float":
+            return isinstance(valor, float)
+
+        elif tipo == "string":
+            return isinstance(valor, str)
+
+        elif tipo == "bool":
+            return isinstance(valor, bool)
+
+        return False

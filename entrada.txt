@@ -1,5 +1,5 @@
 program {
-    string nombre = "Maryori";
-    int edad = 22;
-    print("Hola " + nombre + " " + edad + " ¿Como estas?");
+    string nombre = "Juanito";
+    int edad = 25;
+    print("Hola, ¿Sabia que " + nombre + " tiene " + edad + " años?");
 }
