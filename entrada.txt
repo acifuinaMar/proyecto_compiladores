@@ -6,7 +6,7 @@ program {
     string nombre = "Maryori";
     float pi = 3.1416;
 
-    pi;
-    nombre;
-    suma;
+    print(pi);
+    print(nombre);
+    print(suma);
 }

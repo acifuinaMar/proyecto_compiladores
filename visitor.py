@@ -21,6 +21,9 @@ class Visitor(expresionVisitor):
         if ctx.expresionSi():
             return self.visit(ctx.expresionSi())
 
+        if ctx.printt():
+            return self.visit(ctx.printt())
+
         if ctx.expresion():
             return self.visit(ctx.expresion())
 
@@ -192,4 +195,9 @@ class Visitor(expresionVisitor):
 
         self.memory[nombre] = valor
 
+        return valor
+    
+    def visitPrintt(self, ctx):
+        valor = self.visit(ctx.expresion())
+        print(valor)
         return valor

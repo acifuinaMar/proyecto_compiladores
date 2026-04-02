@@ -7,6 +7,7 @@ sentencia
     : declaracion 
     | asignacion FINAL
     | expresionSi 
+    | printt
     | expresion FINAL
 ;
 
@@ -70,6 +71,10 @@ declaracion
     | TIPO ID FINAL
 ;
 
+printt
+    : PRINT PAI expresion PAD FINAL
+;
+
 // Palabras clave
 PROGRAM: 'program';
 SI     : 'si';
@@ -100,6 +105,9 @@ MAYORI  : '>=';
 AND : '&&';
 OR  : '||';
 NOT : '!';
+
+//Imprimir
+PRINT : 'print';
 
 // Tipos de datos
 TIPO : 'int' | 'bool' | 'string' | 'float';
