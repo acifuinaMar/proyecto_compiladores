@@ -4,9 +4,9 @@ root
 ;
 
 sentencia
-    : asignacion
-    | expresionSi
-    | expresion
+    : asignacion FINAL
+    | expresionSi 
+    | expresion FINAL
 ;
 
 asignacion
@@ -94,6 +94,9 @@ NOT : '!';
 // Valores
 NUM : [0-9]+;
 ID  : [a-zA-Z][a-zA-Z0-9]*;
+
+//Delimitador de linea
+FINAL : '.';
 
 // Espacios
 WS : [ \n\t\r]+ -> skip;
