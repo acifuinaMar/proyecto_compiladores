@@ -84,5 +84,10 @@ class expresionVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by expresionParser#printt.
+    def visitPrintt(self, ctx:expresionParser.PrinttContext):
+        return self.visitChildren(ctx)
+
+
 
 del expresionParser

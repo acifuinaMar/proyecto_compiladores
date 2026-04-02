@@ -13,13 +13,22 @@ class Visitor(expresionVisitor):
 
     def visitSentencia(self, ctx):
 
+        if ctx.declaracion():
+            return self.visit(ctx.declaracion())
+
         if ctx.asignacion():
             return self.visit(ctx.asignacion())
 
         if ctx.expresionSi():
             return self.visit(ctx.expresionSi())
 
-        return self.visit(ctx.expresion())
+        if ctx.printt():
+            return self.visit(ctx.printt())
+
+        if ctx.expresion():
+            return self.visit(ctx.expresion())
+
+        return None
 
     def visitAsignacion(self, ctx):
 
@@ -27,6 +36,23 @@ class Visitor(expresionVisitor):
         valor = self.visit(ctx.expresion())
 
         self.memory[nombre] = valor
+        return valor
+
+    def visitDeclaracion(self, ctx):
+
+        nombre = ctx.ID().getText()
+
+        if ctx.expresion():
+            valor = self.visit(ctx.expresion())
+        else:
+            valor = None
+
+        self.memory[nombre] = valor
+        return valor
+
+    def visitPrintt(self, ctx):
+        valor = self.visit(ctx.expresion())
+        print(valor)
         return valor
 
     def visitExpresion(self, ctx):
@@ -131,6 +157,18 @@ class Visitor(expresionVisitor):
 
         if ctx.NUM():
             return int(ctx.NUM().getText())
+
+        if ctx.FLOAT():
+            return float(ctx.FLOAT().getText())
+
+        if ctx.STRING():
+            return ctx.STRING().getText().strip('"')
+
+        if ctx.VERDADERO():
+            return True
+
+        if ctx.FALSO():
+            return False
 
         if ctx.ID():
             nombre = ctx.ID().getText()

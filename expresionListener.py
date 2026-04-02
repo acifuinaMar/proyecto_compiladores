@@ -143,5 +143,14 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#printt.
+    def enterPrintt(self, ctx:expresionParser.PrinttContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#printt.
+    def exitPrintt(self, ctx:expresionParser.PrinttContext):
+        pass
+
+
 
 del expresionParser
