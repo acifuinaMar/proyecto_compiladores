@@ -53,6 +53,15 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#cicloFor.
+    def enterCicloFor(self, ctx:expresionParser.CicloForContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#cicloFor.
+    def exitCicloFor(self, ctx:expresionParser.CicloForContext):
+        pass
+
+
     # Enter a parse tree produced by expresionParser#bloque.
     def enterBloque(self, ctx:expresionParser.BloqueContext):
         pass

@@ -29,6 +29,9 @@ class Visitor(expresionVisitor):
         
         if ctx.cicloWhile():
             return self.visit(ctx.cicloWhile())
+        
+        if ctx.cicloFor():
+            return self.visit(ctx.cicloFor())
 
         if ctx.expresion():
             return self.visit(ctx.expresion())
@@ -241,4 +244,17 @@ class Visitor(expresionVisitor):
         while self.visit(ctx.expresion()):
             self.visit(ctx.bloque())
 
+        return None
+    
+    def visitCicloFor(self, ctx):
+        if ctx.declaracion():
+            self.visit(ctx.declaracion())
+        else:
+            self.visit(ctx.asignacion(0))
+        condicion = ctx.expresion()
+        actualizacion = ctx.asignacion()[-1]
+
+        while self.visit(condicion):
+            self.visit(ctx.bloque())
+            self.visit(actualizacion)
         return None
