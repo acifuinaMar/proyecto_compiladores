@@ -1,19 +1,19 @@
 program {
-    x = 5;
-    y = 10;
-    z = 15;
+    x = 5.
+    y = 10.
+    z = 15.
 
     si (x < y) {
-        x = x + 1;
+        x = x + 1.
 
         si (y < z) {
-            x = x * 2;
+            x = x * 2.
         } sino {
-            x = x - 1;
+            x = x - 1.
         }
 
-        x = x + 3;
+        x = x + 3.
     } sino {
-        x = 0;
+        x = 0.
     }
 }
