@@ -14,6 +14,26 @@ class expresionVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by expresionParser#sentencia.
+    def visitSentencia(self, ctx:expresionParser.SentenciaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#asignacion.
+    def visitAsignacion(self, ctx:expresionParser.AsignacionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#expresionSi.
+    def visitExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#bloque.
+    def visitBloque(self, ctx:expresionParser.BloqueContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by expresionParser#expresion.
     def visitExpresion(self, ctx:expresionParser.ExpresionContext):
         return self.visitChildren(ctx)
@@ -51,21 +71,6 @@ class expresionVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by expresionParser#unico.
     def visitUnico(self, ctx:expresionParser.UnicoContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by expresionParser#expresionSi.
-    def visitExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by expresionParser#sentencia.
-    def visitSentencia(self, ctx:expresionParser.SentenciaContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by expresionParser#asignacion.
-    def visitAsignacion(self, ctx:expresionParser.AsignacionContext):
         return self.visitChildren(ctx)
 
 

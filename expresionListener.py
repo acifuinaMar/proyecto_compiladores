@@ -17,6 +17,42 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#sentencia.
+    def enterSentencia(self, ctx:expresionParser.SentenciaContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#sentencia.
+    def exitSentencia(self, ctx:expresionParser.SentenciaContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#asignacion.
+    def enterAsignacion(self, ctx:expresionParser.AsignacionContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#asignacion.
+    def exitAsignacion(self, ctx:expresionParser.AsignacionContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#expresionSi.
+    def enterExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#expresionSi.
+    def exitExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#bloque.
+    def enterBloque(self, ctx:expresionParser.BloqueContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#bloque.
+    def exitBloque(self, ctx:expresionParser.BloqueContext):
+        pass
+
+
     # Enter a parse tree produced by expresionParser#expresion.
     def enterExpresion(self, ctx:expresionParser.ExpresionContext):
         pass
@@ -86,33 +122,6 @@ class expresionListener(ParseTreeListener):
 
     # Exit a parse tree produced by expresionParser#unico.
     def exitUnico(self, ctx:expresionParser.UnicoContext):
-        pass
-
-
-    # Enter a parse tree produced by expresionParser#expresionSi.
-    def enterExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
-        pass
-
-    # Exit a parse tree produced by expresionParser#expresionSi.
-    def exitExpresionSi(self, ctx:expresionParser.ExpresionSiContext):
-        pass
-
-
-    # Enter a parse tree produced by expresionParser#sentencia.
-    def enterSentencia(self, ctx:expresionParser.SentenciaContext):
-        pass
-
-    # Exit a parse tree produced by expresionParser#sentencia.
-    def exitSentencia(self, ctx:expresionParser.SentenciaContext):
-        pass
-
-
-    # Enter a parse tree produced by expresionParser#asignacion.
-    def enterAsignacion(self, ctx:expresionParser.AsignacionContext):
-        pass
-
-    # Exit a parse tree produced by expresionParser#asignacion.
-    def exitAsignacion(self, ctx:expresionParser.AsignacionContext):
         pass
 
 

@@ -1,7 +1,19 @@
 program {
     x = 5
-    y = 2
-    z = x * y + 3
+    y = 10
+    z = 15
 
-    si (z > 10) (z) sino (z + 100)
+    si (x < y) {
+        x = x + 1
+
+        si (y < z) {
+            x = x * 2
+        } sino {
+            x = x - 1
+        }
+
+        x = x + 3
+    } sino {
+        x = 0
+    }
 }

@@ -5,42 +5,33 @@ class Visitor(expresionVisitor):
     def __init__(self):
         self.memory = {}
 
-    # program { sentencia* }
     def visitRoot(self, ctx):
-
         resultado = None
-
         for s in ctx.sentencia():
             resultado = self.visit(s)
-
         return resultado
 
-
-    # sentencia puede ser asignacion | expresion
     def visitSentencia(self, ctx):
 
         if ctx.asignacion():
             return self.visit(ctx.asignacion())
 
+        if ctx.expresionSi():
+            return self.visit(ctx.expresionSi())
+
         return self.visit(ctx.expresion())
 
-
-    # asignación de variables
     def visitAsignacion(self, ctx):
 
         nombre = ctx.ID().getText()
         valor = self.visit(ctx.expresion())
 
         self.memory[nombre] = valor
-
         return valor
-
 
     def visitExpresion(self, ctx):
         return self.visit(ctx.orLogico())
 
-
-    # o lógico
     def visitOrLogico(self, ctx):
 
         resultado = self.visit(ctx.andLogico(0))
@@ -50,8 +41,6 @@ class Visitor(expresionVisitor):
 
         return resultado
 
-
-    # y Logico
     def visitAndLogico(self, ctx):
 
         resultado = self.visit(ctx.igualdad(0))
@@ -61,8 +50,6 @@ class Visitor(expresionVisitor):
 
         return resultado
 
-
-    # Igualdades
     def visitIgualdad(self, ctx):
 
         resultado = self.visit(ctx.comparacion(0))
@@ -79,8 +66,6 @@ class Visitor(expresionVisitor):
 
         return resultado
 
-
-    # Comparación
     def visitComparacion(self, ctx):
 
         resultado = self.visit(ctx.suma(0))
@@ -101,8 +86,6 @@ class Visitor(expresionVisitor):
 
         return resultado
 
-
-    # Suma o resta
     def visitSuma(self, ctx):
 
         resultado = self.visit(ctx.multiplicacion(0))
@@ -119,8 +102,6 @@ class Visitor(expresionVisitor):
 
         return resultado
 
-
-    # Multiplicación o división
     def visitMultiplicacion(self, ctx):
 
         resultado = self.visit(ctx.unico(0))
@@ -133,12 +114,12 @@ class Visitor(expresionVisitor):
             if op == "*":
                 resultado = resultado * right
             elif op == "/":
+                if right == 0:
+                    raise Exception("División entre cero")
                 resultado = resultado / right
 
         return resultado
 
-
-    # negacióoon
     def visitUnico(self, ctx):
 
         if ctx.NOT():
@@ -146,8 +127,6 @@ class Visitor(expresionVisitor):
 
         return self.visit(ctx.base())
 
-
-    # unidades básicas
     def visitBase(self, ctx):
 
         if ctx.NUM():
@@ -155,24 +134,31 @@ class Visitor(expresionVisitor):
 
         if ctx.ID():
             nombre = ctx.ID().getText()
-            return self.memory.get(nombre, 0)
 
-        if ctx.expresion():
-            return self.visit(ctx.expresion())
+            if nombre not in self.memory:
+                raise Exception(f"Variable '{nombre}' no definida")
 
-        if ctx.expresionSi():
-            return self.visit(ctx.expresionSi())
+            return self.memory[nombre]
 
+        return self.visit(ctx.expresion())
 
-    # condicional si
     def visitExpresionSi(self, ctx):
 
-        condicion = self.visit(ctx.expresion(0))
+        condicion = self.visit(ctx.expresion())
 
         if condicion:
-            return self.visit(ctx.expresion(1))
+            return self.visit(ctx.bloque(0))
 
-        if ctx.SINO():
-            return self.visit(ctx.expresion(2))
+        elif ctx.SINO():
+            return self.visit(ctx.bloque(1))
 
         return None
+
+    def visitBloque(self, ctx):
+
+        resultado = None
+
+        for s in ctx.sentencia():
+            resultado = self.visit(s)
+
+        return resultado
