@@ -1,12 +1,5 @@
 program {
-    int i = 0;
-
-    while (i < 3) {
-
-        for (int j = 0; j < 3; j = j + 1) {
-            print(i * 10 + j);
-        }
-
-        i = i + 1;
-    }
+    string nombre = "Maryori";
+    int edad = 22;
+    print("Hola " + nombre + " " + edad + " ¿Como estas?");
 }

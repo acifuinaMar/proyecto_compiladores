@@ -130,7 +130,10 @@ class Visitor(expresionVisitor):
             right = self.visit(ctx.multiplicacion(i))
 
             if op == "+":
-                resultado = resultado + right
+                if isinstance(resultado, str) or isinstance(right, str):
+                    resultado = str(resultado) + str(right)
+                else:
+                    resultado = resultado + right   
             elif op == "-":
                 resultado = resultado - right
 
