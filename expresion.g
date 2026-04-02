@@ -8,6 +8,7 @@ sentencia
     | asignacion FINAL
     | expresionSi 
     | printt
+    | cicloWhile
     | expresion FINAL
 ;
 
@@ -17,6 +18,10 @@ asignacion
 expresionSi
     : SI PAI expresion PAD bloque
     | SI PAI expresion PAD bloque SINO bloque
+;
+
+cicloWhile
+    : WHILE PAI expresion PAD bloque
 ;
 
 bloque
@@ -79,6 +84,7 @@ printt
 PROGRAM: 'program';
 SI     : 'si';
 SINO   : 'sino';
+WHILE : 'while';
 
 // Símbolos
 LLAVEI: '{';

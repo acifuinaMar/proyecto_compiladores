@@ -29,6 +29,11 @@ class expresionVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by expresionParser#cicloWhile.
+    def visitCicloWhile(self, ctx:expresionParser.CicloWhileContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by expresionParser#bloque.
     def visitBloque(self, ctx:expresionParser.BloqueContext):
         return self.visitChildren(ctx)

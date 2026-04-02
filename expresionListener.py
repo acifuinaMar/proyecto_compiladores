@@ -44,6 +44,15 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#cicloWhile.
+    def enterCicloWhile(self, ctx:expresionParser.CicloWhileContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#cicloWhile.
+    def exitCicloWhile(self, ctx:expresionParser.CicloWhileContext):
+        pass
+
+
     # Enter a parse tree produced by expresionParser#bloque.
     def enterBloque(self, ctx:expresionParser.BloqueContext):
         pass
