@@ -1,4 +1,9 @@
 program {
+    int x = 5;
+    int y = 10;
+    float pi = 3.1416;
+    string nombre = "Maryori";
+    int suma = x + y;
     print(pi);
     print(nombre);
     print(suma);

@@ -80,7 +80,7 @@ class expresionParser ( Parser ):
                      "'}'", "'('", "')'", "'='", "'+'", "'-'", "'*'", "'/'", 
                      "'=='", "'!='", "'<'", "'>'", "'<='", "'>='", "'&&'", 
                      "'||'", "'!'", "'print'", "<INVALID>", "'verdadero'", 
-                     "'falso'", "<INVALID>", "<INVALID>", "'.'" ]
+                     "'falso'", "<INVALID>", "<INVALID>", "';'" ]
 
     symbolicNames = [ "<INVALID>", "PROGRAM", "SI", "SINO", "LLAVEI", "LLAVED", 
                       "PAI", "PAD", "ASIG", "SUM", "RES", "MUL", "DIV", 
