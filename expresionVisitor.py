@@ -79,5 +79,10 @@ class expresionVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by expresionParser#declaracion.
+    def visitDeclaracion(self, ctx:expresionParser.DeclaracionContext):
+        return self.visitChildren(ctx)
+
+
 
 del expresionParser

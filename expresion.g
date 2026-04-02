@@ -4,7 +4,8 @@ root
 ;
 
 sentencia
-    : asignacion FINAL
+    : declaracion 
+    | asignacion FINAL
     | expresionSi 
     | expresion FINAL
 ;
@@ -56,8 +57,15 @@ unico
 
 base
     : NUM
+    | VERDADERO
+    | FALSO
     | ID
     | PAI expresion PAD
+;
+
+declaracion
+    : TIPO ID expresion FINAL
+    | TIPO ID FINAL
 ;
 
 // Palabras clave
@@ -90,6 +98,11 @@ MAYORI  : '>=';
 AND : '&&';
 OR  : '||';
 NOT : '!';
+
+// Tipos de datos
+TIPO : 'int' | 'bool' | 'string' | 'float';
+VERDADERO : 'verdadero';
+FALSO : 'falso';
 
 // Valores
 NUM : [0-9]+;

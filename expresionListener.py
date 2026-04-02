@@ -134,5 +134,14 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#declaracion.
+    def enterDeclaracion(self, ctx:expresionParser.DeclaracionContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#declaracion.
+    def exitDeclaracion(self, ctx:expresionParser.DeclaracionContext):
+        pass
+
+
 
 del expresionParser
