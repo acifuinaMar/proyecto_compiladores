@@ -19,6 +19,21 @@ class expresionVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by expresionParser#funcion.
+    def visitFuncion(self, ctx:expresionParser.FuncionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#parametros.
+    def visitParametros(self, ctx:expresionParser.ParametrosContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#parametro.
+    def visitParametro(self, ctx:expresionParser.ParametroContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by expresionParser#asignacion.
     def visitAsignacion(self, ctx:expresionParser.AsignacionContext):
         return self.visitChildren(ctx)
@@ -81,6 +96,21 @@ class expresionVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by expresionParser#unico.
     def visitUnico(self, ctx:expresionParser.UnicoContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#llamadaFuncion.
+    def visitLlamadaFuncion(self, ctx:expresionParser.LlamadaFuncionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#argumentos.
+    def visitArgumentos(self, ctx:expresionParser.ArgumentosContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by expresionParser#returnStmt.
+    def visitReturnStmt(self, ctx:expresionParser.ReturnStmtContext):
         return self.visitChildren(ctx)
 
 

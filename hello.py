@@ -49,11 +49,20 @@ def main():
 
         # Visitor
         visitor = Visitor()
-        resultado = visitor.visit(tree)
+        import traceback
+        try:
+            visitor.visit(tree)
+        except Exception as e:
+            traceback.print_exc()
 
         # Salida
         print("\n===== RESULTADO =====")
-        print(resultado)
+        try:
+            resultado = visitor.visit(tree)
+            print(resultado)
+        except Exception as e:
+            print("ERROR:")
+            print(e)
 
         print("\n===== ÁRBOL =====")
         print_tree(tree, parser)

@@ -26,6 +26,33 @@ class expresionListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by expresionParser#funcion.
+    def enterFuncion(self, ctx:expresionParser.FuncionContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#funcion.
+    def exitFuncion(self, ctx:expresionParser.FuncionContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#parametros.
+    def enterParametros(self, ctx:expresionParser.ParametrosContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#parametros.
+    def exitParametros(self, ctx:expresionParser.ParametrosContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#parametro.
+    def enterParametro(self, ctx:expresionParser.ParametroContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#parametro.
+    def exitParametro(self, ctx:expresionParser.ParametroContext):
+        pass
+
+
     # Enter a parse tree produced by expresionParser#asignacion.
     def enterAsignacion(self, ctx:expresionParser.AsignacionContext):
         pass
@@ -140,6 +167,33 @@ class expresionListener(ParseTreeListener):
 
     # Exit a parse tree produced by expresionParser#unico.
     def exitUnico(self, ctx:expresionParser.UnicoContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#llamadaFuncion.
+    def enterLlamadaFuncion(self, ctx:expresionParser.LlamadaFuncionContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#llamadaFuncion.
+    def exitLlamadaFuncion(self, ctx:expresionParser.LlamadaFuncionContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#argumentos.
+    def enterArgumentos(self, ctx:expresionParser.ArgumentosContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#argumentos.
+    def exitArgumentos(self, ctx:expresionParser.ArgumentosContext):
+        pass
+
+
+    # Enter a parse tree produced by expresionParser#returnStmt.
+    def enterReturnStmt(self, ctx:expresionParser.ReturnStmtContext):
+        pass
+
+    # Exit a parse tree produced by expresionParser#returnStmt.
+    def exitReturnStmt(self, ctx:expresionParser.ReturnStmtContext):
         pass
 
 

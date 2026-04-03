@@ -10,9 +10,21 @@ sentencia
     | printt
     | cicloWhile
     | cicloFor
+    | funcion
+    | returnStmt
     | expresion FINAL
 ;
+funcion
+    : TIPO ID PAI parametros? PAD bloque
+;
 
+parametros
+    : parametro (',' parametro)*
+;
+
+parametro
+    : TIPO ID
+;
 asignacion
     : ID ASIG expresion
 ;
@@ -66,8 +78,21 @@ unico
     | base
 ;
 
+llamadaFuncion
+    : ID PAI argumentos? PAD
+;
+
+argumentos
+    : expresion (',' expresion)*
+;
+
+returnStmt
+    : RETURN expresion FINAL
+;
+
 base
-    : FLOAT
+    : llamadaFuncion
+    | FLOAT
     | NUM
     | STRING
     | VERDADERO
@@ -117,6 +142,9 @@ MAYORI  : '>=';
 AND : '&&';
 OR  : '||';
 NOT : '!';
+
+// return
+RETURN : 'return';
 
 //Imprimir
 PRINT : 'print';
