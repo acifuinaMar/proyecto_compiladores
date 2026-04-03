@@ -5,7 +5,7 @@ class Visitor(expresionVisitor):
     def __init__(self):
         self.scopes = [{}] 
         self.tabla_tipos = [{}] 
-        self.funciones = {}
+        self.funciones = [{}] #Como pila para poder anidar funciones
         self.current_function = None
 
     class ReturnException(Exception):
@@ -16,11 +16,20 @@ class Visitor(expresionVisitor):
         """Crea un nuevo ámbito local (al entrar a un bloque {})"""
         self.scopes.append({})
         self.tabla_tipos.append({})
+        self.funciones.append({})
+
+    def get_funcion(self, nombre):
+        for scope in reversed(self.funciones):
+            if nombre in scope:
+                return scope[nombre]
+        return None
 
     def pop_scope(self):
         """Elimina el ámbito actual (al salir de un bloque {})"""
         self.scopes.pop()
         self.tabla_tipos.pop()
+        self.funciones.pop()
+        
 
     def get_var(self, nombre):
         """Busca una variable desde el ámbito más interno hacia el global"""
@@ -63,9 +72,11 @@ class Visitor(expresionVisitor):
         if valor is not None:
             if not self.validar_tipo(tipo, valor):
                 raise Exception(f"Error de Tipo: '{nombre}' es {tipo} y no acepta {type(valor).__name__}")
-
-        self.scopes[-1][nombre] = valor
-        return valor
+        else:
+            if tipo != "void":
+                raise Exception(f"Error: No se puede asignar void a '{nombre}'")
+                self.scopes[-1][nombre] = valor
+                return valor
 
     def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
@@ -229,7 +240,7 @@ class Visitor(expresionVisitor):
                 param_tipo = p.TIPO().getText()
                 parametros.append((param_nombre, param_tipo))
 
-        self.funciones[nombre] = {
+        self.funciones[-1][nombre] = {
             "tipo": tipo,
             "parametros": parametros,
             "ctx": ctx
@@ -241,54 +252,47 @@ class Visitor(expresionVisitor):
         if self.current_function is None:
             raise Exception("Error: return fuera de función")
 
-        valor = self.visit(ctx.expresion())
+        if ctx.expresion():
+            valor = self.visit(ctx.expresion())
+        else:
+            valor = None
+
         raise Visitor.ReturnException(valor)
     
     # Cuando llame una funcion:
     def visitLlamadaFuncion(self, ctx):
         nombre = ctx.ID().getText()
+        funcion = self.get_funcion(nombre)
 
-        funcion = self.funciones.get(nombre)
-        if not funcion:
-            raise Exception(f"Error: La función '{nombre}' no existe")
-
-        # Evaluar argumentos
+        # argumentos
         argumentos = []
         if ctx.argumentos():
             for arg in ctx.argumentos().expresion():
                 argumentos.append(self.visit(arg))
-            
 
-        # Validar cantidad de parámetros
-        if len(argumentos) != len(funcion["parametros"]):
-            raise Exception("Error: Cantidad incorrecta de parámetros")
-
-        # Nuevo scope
+        # nuevo scope
         self.push_scope()
 
-        # Guardar tipos y valores de parámetros
+        # parametros
         for (param_nombre, param_tipo), valor in zip(funcion["parametros"], argumentos):
-            if not self.validar_tipo(param_tipo, valor):
-                raise Exception(f"Error: Tipo incorrecto en parámetro '{param_nombre}'")
-
             self.scopes[-1][param_nombre] = valor
             self.tabla_tipos[-1][param_nombre] = param_tipo
 
-        # Ejecutar función
+        # ejecutar
         self.current_function = funcion
+        retorno = None
 
         try:
             self.visit(funcion["ctx"].bloque())
         except Visitor.ReturnException as r:
-            self.pop_scope()
-            self.current_function = None
-            return r.value
+            retorno = r.value
 
+        # limpiar
         self.pop_scope()
         self.current_function = None
 
-        # Si no hubo return
-        if funcion["tipo"] != "void":
-            raise Exception(f"Error: La función '{nombre}' debe retornar un valor")
+        # retorno limpio
+        if funcion["tipo"] == "void":
+            return None
 
-        return None
+        return retorno

@@ -87,7 +87,7 @@ argumentos
 ;
 
 returnStmt
-    : RETURN expresion FINAL
+    : RETURN expresion? FINAL
 ;
 
 base
@@ -150,7 +150,7 @@ RETURN : 'return';
 PRINT : 'print';
 
 // Tipos de datos
-TIPO : 'int' | 'bool' | 'string' | 'float';
+TIPO : 'int' | 'bool' | 'string' | 'float' | 'void';
 VERDADERO : 'verdadero';
 FALSO : 'falso';
 STRING : '"' .*? '"';
