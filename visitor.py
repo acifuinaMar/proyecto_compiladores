@@ -108,6 +108,18 @@ class Visitor(expresionVisitor):
         while self.visit(ctx.expresion()):
             self.visit(ctx.bloque())
         return None
+    def visitCicloFor(self, ctx): 
+        if ctx.declaracion(): 
+            self.visit(ctx.declaracion()) 
+        else: 
+            self.visit(ctx.asignacion(0)) 
+        condicion = ctx.expresion() 
+        actualizacion = ctx.asignacion()[-1] 
+        
+        while self.visit(condicion): 
+            self.visit(ctx.bloque()) 
+            self.visit(actualizacion) 
+        return None
 
     def visitPrintt(self, ctx):
         valor = self.visit(ctx.expresion())

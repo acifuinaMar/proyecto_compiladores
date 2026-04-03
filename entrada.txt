@@ -1,22 +1,12 @@
 program {
-    int contador = 1;
-    int limite = 3;
+    int i = 0;
 
-    print("--- Inicio del Programa ---");
+    while (i < 3) {
 
-    while (contador <= limite) {
-        int temp = contador * 10;
-        print("Iteracion numero");
-        print(contador);
-        
-        print("Valor temporal local");
-        print(temp);
+        for (int j = 0; j < 3; j = j + 1) {
+            print(i * 10 + j);
+        }
 
-        contador = contador + 1;
+        i = i + 1;
     }
-
-    print("--- Fin del ciclo ---");
-    print("Contador final");
-    print(contador);
- 
 }
