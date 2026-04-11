@@ -65,18 +65,21 @@ class Visitor(expresionVisitor):
         valor = self.visit(ctx.expresion()) if ctx.expresion() else None
 
         if nombre in self.scopes[-1]:
-            raise Exception(f"Error Semántico: La variable '{nombre}' ya existe en este ámbito local")
+            raise Exception(f"Error: '{nombre}' ya existe en este ámbito")
 
+        # Guardar tipo
         self.tabla_tipos[-1][nombre] = tipo
-        
+
+        # Validar tipo si hay valor
         if valor is not None:
             if not self.validar_tipo(tipo, valor):
-                raise Exception(f"Error de Tipo: '{nombre}' es {tipo} y no acepta {type(valor).__name__}")
-        else:
-            if tipo != "void":
-                raise Exception(f"Error: No se puede asignar void a '{nombre}'")
-                self.scopes[-1][nombre] = valor
-                return valor
+                raise Exception(
+                    f"Error de tipo: '{nombre}' es {tipo} y recibe {type(valor).__name__}"
+                )
+
+        self.scopes[-1][nombre] = valor
+
+        return valor
 
     def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
@@ -263,7 +266,9 @@ class Visitor(expresionVisitor):
     def visitLlamadaFuncion(self, ctx):
         nombre = ctx.ID().getText()
         funcion = self.get_funcion(nombre)
-
+        if funcion is None:
+            raise Exception(f"Error: función '{nombre}' no definida")
+        
         # argumentos
         argumentos = []
         if ctx.argumentos():
