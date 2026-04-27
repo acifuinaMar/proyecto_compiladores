@@ -72,6 +72,7 @@ class Visitor(expresionVisitor):
         if valor is not None:
             if not self.validar_tipo(tipo, valor):
                 raise Exception(f"Error de Tipo: '{nombre}' es {tipo} y no acepta {type(valor).__name__}")
+            self.scopes[-1][nombre] = valor
         else:
             if tipo != "void":
                 raise Exception(f"Error: No se puede asignar void a '{nombre}'")
