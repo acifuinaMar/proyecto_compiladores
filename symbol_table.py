@@ -130,7 +130,6 @@ class SymbolTable:
     
     def definir_funcion(self, nombre: str, tipo_retorno: TipoDato,
                         parametros: List[Simbolo], linea: int, columna: int) -> bool:
-                # Las funciones solo se definen en el scope global
         simbolo = Simbolo(
             nombre=nombre,
             tipo=SimboloTipo.FUNCION,
@@ -183,12 +182,11 @@ class SymbolTable:
         if not simbolo:
             return False
         
-        # Validar tipo (básica)
+        # Validar tipo 
         tipo_esperado = simbolo.tipo_dato
         tipo_valor = self._tipo_de_valor(valor)
         
         if tipo_esperado != tipo_valor:
-            # Permitir int -> float
             if not (tipo_esperado == TipoDato.FLOAT and tipo_valor == TipoDato.INT):
                 raise TypeError(f"Tipo incorrecto: esperaba {tipo_esperado.value}, recibió {tipo_valor.value}")
         

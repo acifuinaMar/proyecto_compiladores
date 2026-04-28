@@ -6,6 +6,9 @@ from lexer_phase import LexerPhase
 from parser_phase import ParserPhase
 from semantic_phase import SemanticPhase
 from interpreter_phase import InterpreterPhase
+from tac_generator import TACGenerator
+from ir_generator import IRGenerator
+
 
 
 class Pipeline:
@@ -35,7 +38,14 @@ class Pipeline:
         if not self._fase_semantica():
             return self._resumen()
         
-        # Fase 4: Ejecución
+        # Fase 4: Generación TAC
+        if not self._fase_tac():
+            return self._resumen()
+        
+        # Fase 5: LLVM IR
+        if not self._fase_ir():
+            return self._resumen()
+        # Fase 6
         self._fase_ejecucion()
         
         return self._resumen()
@@ -79,8 +89,69 @@ class Pipeline:
         print(f"  {'Nicee' if exitoso else 'Erroor'} {tiempo:.2f} ms - Tabla de símbolos")
         return exitoso
     
+    def _fase_tac(self):
+        print("\n[FASE 4] Generación TAC (Código de Tres Direcciones)")
+        print("-" * 40)
+        inicio = time.time()
+        
+        try:
+            tac_gen = TACGenerator()
+            codigo_tac = tac_gen.visit(self.ast)
+            tiempo = (time.time() - inicio) * 1000
+            
+            # Guardar en archivo
+            with open("salida.tac", "w", encoding='utf-8') as f:
+                f.write(codigo_tac)
+            
+            self.resultados["tac"] = {"exitoso": True, "tiempo_ms": tiempo}
+            print(f" Niicee! {tiempo:.2f} ms - {len(tac_gen.instructions)} instrucciones TAC")
+            print(f"Archivo generado: salida.tac")
+            
+            # Mostrar primeras líneas del TAC
+            lineas = codigo_tac.split('\n')
+            print(f"\n  --- Primeras líneas del TAC ---")
+            for linea in lineas[:10]:
+                print(f"    {linea}")
+            if len(lineas) > 10:
+                print(f"    ... y {len(lineas)-10} líneas más")
+            
+            return True
+            
+        except Exception as e:
+            self.error_handler.error_ejecucion(0, 0, f"Error generando TAC: {str(e)}")
+            self.resultados["tac"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
+            print(f"Error: {e}")
+            return False
+        
+    
+    def _fase_ir(self):
+        print("\n[FASE 5] Generación LLVM IR")
+        print("-" * 40)
+        inicio = time.time()
+        
+        try:
+            ir_gen = IRGenerator()
+            codigo_ir = ir_gen.visit(self.ast)
+            tiempo = (time.time() - inicio) * 1000
+            
+            # Guardar archivo .ll
+            with open("salida.ll", "w", encoding='utf-8') as f:
+                f.write(codigo_ir)
+            
+            self.resultados["ir"] = {"exitoso": True, "tiempo_ms": tiempo}
+            print(f" Niicee! {tiempo:.2f} ms - {len(codigo_ir.split(chr(10)))} líneas")
+            print(f"Archivo generado: salida.ll")
+            
+            return True
+            
+        except Exception as e:
+            self.error_handler.error_ejecucion(0, 0, f"Error generando IR: {str(e)}")
+            self.resultados["ir"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
+            print(f" Error: {e}")
+            return False
+
     def _fase_ejecucion(self):
-        print("\n[FASE 4] Ejecución")
+        print("\n[FASE 6] Ejecución")
         print("-" * 40)
         inicio = time.time()
         

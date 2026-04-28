@@ -220,8 +220,6 @@ class Visitor(gramatica_finalVisitor):
             self.visit(ctx.bloque())
             self.visit(ctx.asignacion()[-1])
         return None
-
-    # ===== NUEVOS MÉTODOS PARA EXPRESIONES =====
     
     def visitExpresion(self, ctx):
         return self.visit(ctx.comparacion())

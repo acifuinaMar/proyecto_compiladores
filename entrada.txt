@@ -1,8 +1,4 @@
 program {
-    int x = 10;
-    //Esto es otro comentario
-    string prefijo = "El resultado es: ";
-    
     int factorial(int n) {
         si (n <= 1) {
             return 1;
@@ -10,12 +6,5 @@ program {
             return n * factorial(n - 1);
         }
     }
-    /* Esto es un 
-    comentario */
-    while (x > 0) {
-        int temp = factorial(x);
-        print(prefijo);
-        print(temp);
-        x = x - 2;
-    }
+    print(factorial(5));
 }

@@ -12,7 +12,6 @@ class ErrorType(Enum):
 
 @dataclass
 class CompilerError:
-    """Representa un error individual del compilador"""
     tipo: ErrorType
     linea: int
     columna: int
@@ -25,7 +24,6 @@ class CompilerError:
         return f"[{self.tipo.value}]{token_info} en {ubicacion}: {self.mensaje}"
     
     def to_dict(self) -> dict:
-        """Convierte a diccionario para la UI"""
         return {
             "tipo": self.tipo.value,
             "linea": self.linea,
@@ -35,10 +33,6 @@ class CompilerError:
         }
 
 class ErrorHandler:
-    """
-    Manejador central de errores del compilador.
-    Acumula errores y permite detener el pipeline en la primera falla grave.
-    """
     
     def error_ejecucion(self, linea: int, columna: int, mensaje: str, token: str = None) -> None:
         """Registra un error de ejecución"""
@@ -98,11 +92,10 @@ class ErrorHandler:
         return self.detener_en_primera_falla and self.hay_error_grave()
     
     def limpiar(self):
-        """Limpia todos los errores (útil para múltiples compilaciones)"""
+        """Limpia todos los errores"""
         self.errores = []
     
     def obtener_resumen(self) -> dict:
-        """Obtiene un resumen de errores para la UI"""
         return {
             "total": len(self.errores),
             "lexicos": sum(1 for e in self.errores if e.tipo == ErrorType.LEXICO),
@@ -119,7 +112,6 @@ class ErrorHandler:
 
 # Clase auxiliar para ANTLR
 class ANTLRErrorListener:
-    """Adaptador para capturar errores de ANTLR y convertirlos a nuestro formato"""
     
     def __init__(self, error_handler: ErrorHandler):
         self.error_handler = error_handler
