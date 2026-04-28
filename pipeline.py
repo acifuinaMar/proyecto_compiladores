@@ -1,79 +1,127 @@
+import time
 import sys
 from antlr4 import *
-from expresionLexer import expresionLexer
-from expresionParser import expresionParser
-from antlr4.error.ErrorListener import ErrorListener
-from semantic_visitor import SemanticVisitor
-from visitor import Visitor
+from custom_errors import ErrorHandler
+from lexer_phase import LexerPhase
+from parser_phase import ParserPhase
+from semantic_phase import SemanticPhase
+from interpreter_phase import InterpreterPhase
 
-# Manejador de errores para capturar fallos de sintaxis o léxicos
-class CustomErrorListener(ErrorListener):
+
+class Pipeline:
     def __init__(self):
-        super(CustomErrorListener, self).__init__()
-        self.errores = []
-
-    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        tipo = "Sintáctico" if offendingSymbol else "Léxico"
-        self.errores.append(f"[Error {tipo}] Línea {line}, Columna {column}: {msg}")
-
-    def tiene_errores(self): 
-        return len(self.errores) > 0
-
-def run_pipeline(archivo_entrada):
-    print(f"Iniciando Pipeline: {archivo_entrada}")
-    try:
-        # Lectura del archivo
-        input_stream = FileStream(archivo_entrada, encoding='utf-8')
+        self.error_handler = ErrorHandler(detener_en_primera_falla=True)
+        self.ast = None
+        self.symbol_table = None
+        self.resultados = {}
+    
+    def ejecutar(self, codigo):
+        self.error_handler.limpiar()
+        self.resultados = {}
         
-        # Análisis Léxico
-        lexer = expresionLexer(input_stream)
-        error_handler = CustomErrorListener()
-        lexer.removeErrorListeners()
-        lexer.addErrorListener(error_handler)
+        print("\n" + "="*60)
+        print("COMPILADOR - PIPELINE v3.0")
+        print("="*60)
         
-        # Análisis Sintáctico
-        token_stream = CommonTokenStream(lexer)
-        parser = expresionParser(token_stream)
-        parser.removeErrorListeners()
-        parser.addErrorListener(error_handler)
-
-        tree = parser.root()
-
-        # Verificación de Errores Léxicos/Sintácticos
-        if error_handler.tiene_errores():
-            print("\nSe encontraron errores en el análisis inicial:")
-            for err in error_handler.errores: 
-                print(err)
-            return
-
-        semantic_checker = SemanticVisitor()
-        # visit devuelve la lista de errores acumulados
-        errores_semanticos = semantic_checker.visit(tree)
-
-        if errores_semanticos:
-            print("\nERRORES SEMÁNTICOS ENCONTRADOS")
-            for err in errores_semanticos: 
-                print(err)
-            print("\nEjecución cancelada por errores semánticos.")
-            return
-
-        # Intérprete / Ejecución
-        print("Validación exitosa. Iniciando Intérprete...\n")
+        # Fase 1: Léxico
+        if not self._fase_lexica(codigo):
+            return self._resumen()
         
-        interpreter = Visitor()
-        try:
-            interpreter.visit(tree)
-            print("\nEjecución finalizada con éxito")
-        except Exception as e:
-            print(f"\n[Error de Ejecución]: {e}")
+        # Fase 2: Sintáctico
+        if not self._fase_sintactica(codigo):
+            return self._resumen()
+        
+        # Fase 3: Semántico
+        if not self._fase_semantica():
+            return self._resumen()
+        
+        # Fase 4: Ejecución
+        self._fase_ejecucion()
+        
+        return self._resumen()
+    
+    def _fase_lexica(self, codigo):
+        print("\n[FASE 1] Análisis Léxico")
+        print("-" * 40)
+        inicio = time.time()
+        
+        fase = LexerPhase(self.error_handler)
+        exitoso, tokens = fase.ejecutar(codigo)
+        tiempo = (time.time() - inicio) * 1000
+        
+        self.resultados["lexico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
+        print(f"  {'Nicee' if exitoso else 'Erroor'} {tiempo:.2f} ms - {len(tokens)} tokens")
+        return exitoso
+    
+    def _fase_sintactica(self, codigo):
+        print("\n[FASE 2] Análisis Sintáctico")
+        print("-" * 40)
+        inicio = time.time()
+        
+        fase = ParserPhase(self.error_handler)
+        exitoso, self.ast = fase.ejecutar(codigo)
+        tiempo = (time.time() - inicio) * 1000
+        
+        self.resultados["sintactico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
+        print(f"  {'Nicee' if exitoso else 'Errooor'} {tiempo:.2f} ms - AST generado")
+        return exitoso
+    
+    def _fase_semantica(self):
+        print("\n[FASE 3] Análisis Semántico")
+        print("-" * 40)
+        inicio = time.time()
+        
+        fase = SemanticPhase(self.error_handler)
+        exitoso, self.symbol_table = fase.ejecutar(self.ast)
+        tiempo = (time.time() - inicio) * 1000
+        
+        self.resultados["semantico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
+        print(f"  {'Nicee' if exitoso else 'Erroor'} {tiempo:.2f} ms - Tabla de símbolos")
+        return exitoso
+    
+    def _fase_ejecucion(self):
+        print("\n[FASE 4] Ejecución")
+        print("-" * 40)
+        inicio = time.time()
+        
+        fase = InterpreterPhase(self.error_handler)
+        exitoso, resultado = fase.ejecutar(self.ast)
+        tiempo = (time.time() - inicio) * 1000
+        
+        self.resultados["ejecucion"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
+        print(f"  {'Niicee' if exitoso else 'Errooor'} {tiempo:.2f} ms")
+        return exitoso
+    
+    def _resumen(self):
+        print("\n" + "="*60)
+        print("RESUMEN")
+        print("="*60)
+        
+        for nombre, r in self.resultados.items():
+            print(f"  {'Nicee' if r['exitoso'] else 'Errooor'} {nombre.capitalize():12} : {r['tiempo_ms']:8.2f} ms")
+        
+        total = sum(r["tiempo_ms"] for r in self.resultados.values())
+        print(f"\nTOTAL: {total:.2f} ms")
+        
+        if self.error_handler.tiene_errores():
+            print(f"\nERRORES: {len(self.error_handler.errores)}")
+            for e in self.error_handler.errores[:3]:
+                print(f"     • {e}")
+        
+        print("="*60)
+        return all(r["exitoso"] for r in self.resultados.values())
 
-    except FileNotFoundError:
-        print(f"Error: El archivo '{archivo_entrada}' no existe.")
-    except Exception as e:
-        print(f"Error inesperado en el Pipeline: {e}")
+
+def main():
+    archivo = sys.argv[1] if len(sys.argv) > 1 else "entrada.txt"
+    
+    with open(archivo, 'r', encoding='utf-8') as f:
+        codigo = f.read()
+    
+    pipeline = Pipeline()
+    ok = pipeline.ejecutar(codigo)
+    sys.exit(0 if ok else 1)
+
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        run_pipeline(sys.argv[1])
-    else:
-        run_pipeline("entrada.txt")
+    main()

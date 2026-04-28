@@ -1,12 +1,21 @@
 program {
-    int externa() {
-
-        int interna() {
-            return 5;
+    int x = 10;
+    //Esto es otro comentario
+    string prefijo = "El resultado es: ";
+    
+    int factorial(int n) {
+        si (n <= 1) {
+            return 1;
+        } sino {
+            return n * factorial(n - 1);
         }
-
-        return interna();
     }
-
-    print(interna()); 
+    /* Esto es un 
+    comentario */
+    while (x > 0) {
+        int temp = factorial(x);
+        print(prefijo);
+        print(temp);
+        x = x - 2;
+    }
 }

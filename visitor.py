@@ -1,133 +1,201 @@
-from expresionVisitor import expresionVisitor
+# visitor.py - Versión actualizada para la nueva gramática
+from gramatica_finalVisitor import gramatica_finalVisitor
 
-class Visitor(expresionVisitor):
+class Visitor(gramatica_finalVisitor):
 
     def __init__(self):
-        self.scopes = [{}] 
-        self.tabla_tipos = [{}] 
-        self.funciones = [{}] #Como pila para poder anidar funciones
+        self.scopes = [{}]      # Pila de valores
+        self.tabla_tipos = [{}] # Pila de tipos
+        self.funciones = {}     # Diccionario GLOBAL de funciones
         self.current_function = None
+        self.current_return_type = None
 
     class ReturnException(Exception):
         def __init__(self, value):
             self.value = value
 
     def push_scope(self):
-        """Crea un nuevo ámbito local (al entrar a un bloque {})"""
         self.scopes.append({})
         self.tabla_tipos.append({})
-        self.funciones.append({})
-
-    def get_funcion(self, nombre):
-        for scope in reversed(self.funciones):
-            if nombre in scope:
-                return scope[nombre]
-        return None
 
     def pop_scope(self):
-        """Elimina el ámbito actual (al salir de un bloque {})"""
         self.scopes.pop()
         self.tabla_tipos.pop()
-        self.funciones.pop()
-        
 
     def get_var(self, nombre):
-        """Busca una variable desde el ámbito más interno hacia el global"""
         for scope in reversed(self.scopes):
             if nombre in scope:
                 return scope[nombre]
-        raise Exception(f"Error: La variable '{nombre}' no está definida")
+        raise Exception(f"Variable '{nombre}' no definida")
 
-    def set_var(self, nombre, valor):
-        """Busca una variable existente y actualiza su valor"""
-        for scope in reversed(self.scopes):
-            if nombre in scope:
-                scope[nombre] = valor
-                return
-        raise Exception(f"Error: No se puede asignar a '{nombre}' porque no ha sido declarada")
-
-    def get_tipo_var(self, nombre):
-        """Busca el tipo de una variable en la pila de tipos"""
+    def get_tipo(self, nombre):
         for t_scope in reversed(self.tabla_tipos):
             if nombre in t_scope:
                 return t_scope[nombre]
         return None
 
+    def validar_tipo(self, tipo, valor):
+        if tipo == "int":
+            return isinstance(valor, int) and not isinstance(valor, bool)
+        elif tipo == "float":
+            return isinstance(valor, (int, float))
+        elif tipo == "string":
+            return isinstance(valor, str)
+        elif tipo == "bool":
+            return isinstance(valor, bool)
+        return False
+
     def visitRoot(self, ctx):
         resultado = None
-        for s in ctx.sentencia():
-            resultado = self.visit(s)
+        for prog in ctx.programa():
+            resultado = self.visit(prog)
         return resultado
+
+    def visitPrograma(self, ctx):
+        # Programa puede ser funcion, declaracion, sentenciaGlobal o cicloWhile
+        if ctx.funcion():
+            return self.visit(ctx.funcion())
+        elif ctx.declaracion():
+            return self.visit(ctx.declaracion())
+        elif ctx.sentenciaGlobal():
+            return self.visit(ctx.sentenciaGlobal())
+        elif ctx.cicloWhile():
+            return self.visit(ctx.cicloWhile())
+        return None
+
+    def visitSentenciaGlobal(self, ctx):
+        if ctx.printt():
+            return self.visit(ctx.printt())
+        elif ctx.asignacion():
+            return self.visit(ctx.asignacion())
+        return None
 
     def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
         tipo = ctx.TIPO().getText()
         valor = self.visit(ctx.expresion()) if ctx.expresion() else None
-
+        
         if nombre in self.scopes[-1]:
-            raise Exception(f"Error Semántico: La variable '{nombre}' ya existe en este ámbito local")
-
+            raise Exception(f"Variable '{nombre}' ya declarada en este ámbito")
+        
         self.tabla_tipos[-1][nombre] = tipo
         
         if valor is not None:
             if not self.validar_tipo(tipo, valor):
-                raise Exception(f"Error de Tipo: '{nombre}' es {tipo} y no acepta {type(valor).__name__}")
+                raise Exception(f"Tipo incorrecto para '{nombre}': espera {tipo}")
             self.scopes[-1][nombre] = valor
         else:
-            if tipo != "void":
-                raise Exception(f"Error: No se puede asignar void a '{nombre}'")
-                self.scopes[-1][nombre] = valor
-                return valor
+            if tipo == "int":
+                self.scopes[-1][nombre] = 0
+            elif tipo == "float":
+                self.scopes[-1][nombre] = 0.0
+            elif tipo == "bool":
+                self.scopes[-1][nombre] = False
+            elif tipo == "string":
+                self.scopes[-1][nombre] = ""
+        
+        return None
 
     def visitAsignacion(self, ctx):
         nombre = ctx.ID().getText()
         valor = self.visit(ctx.expresion())
         
-        tipo_declarado = self.get_tipo_var(nombre)
-        if not self.validar_tipo(tipo_declarado, valor):
-            raise Exception(f"Error de Tipo: '{nombre}' espera {tipo_declarado}")
-
-        self.set_var(nombre, valor)
+        encontrada = False
+        for scope in reversed(self.scopes):
+            if nombre in scope:
+                scope[nombre] = valor
+                encontrada = True
+                break
+        
+        if not encontrada:
+            raise Exception(f"Variable '{nombre}' no declarada")
+        
         return valor
 
     def visitBloque(self, ctx):
-        # Aquí ocurre el CONTROL DE ÁMBITOS
-        self.push_scope() # PUSH
-        
+        self.push_scope()
         resultado = None
         for s in ctx.sentencia():
             resultado = self.visit(s)
-
-        self.pop_scope() # POP
+        self.pop_scope()
         return resultado
 
-    def visitBase(self, ctx):
-        if ctx.llamadaFuncion():
-            return self.visit(ctx.llamadaFuncion())
-
-        if ctx.NUM():
-            return int(ctx.NUM().getText())
-
-        if ctx.FLOAT():
-            return float(ctx.FLOAT().getText())
-
-        if ctx.STRING():
-            return ctx.STRING().getText().strip('"')
-
-        if ctx.VERDADERO():
-            return True
-
-        if ctx.FALSO():
-            return False
-
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            return self.get_var(nombre)
-
-        if ctx.expresion():
-            return self.visit(ctx.expresion())
-
+    def visitFuncion(self, ctx):
+        nombre = ctx.ID().getText()
+        tipo_retorno = ctx.TIPO().getText()
+        
+        parametros = []
+        if ctx.parametros():
+            for p in ctx.parametros().parametro():
+                param_nombre = p.ID().getText()
+                param_tipo = p.TIPO().getText()
+                parametros.append((param_nombre, param_tipo))
+        
+        self.funciones[nombre] = {
+            "tipo": tipo_retorno,
+            "parametros": parametros,
+            "ctx": ctx
+        }
         return None
+
+    def visitLlamadaFuncion(self, ctx):
+        nombre = ctx.ID().getText()
+        
+        if nombre not in self.funciones:
+            raise Exception(f"Función '{nombre}' no definida")
+        
+        funcion = self.funciones[nombre]
+        
+        argumentos = []
+        if ctx.argumentos():
+            for arg in ctx.argumentos().expresion():
+                argumentos.append(self.visit(arg))
+        
+        if len(argumentos) != len(funcion["parametros"]):
+            raise Exception(f"Función '{nombre}' espera {len(funcion['parametros'])} argumentos, recibe {len(argumentos)}")
+        
+        self.push_scope()
+        
+        for (param_nombre, param_tipo), arg_valor in zip(funcion["parametros"], argumentos):
+            self.tabla_tipos[-1][param_nombre] = param_tipo
+            self.scopes[-1][param_nombre] = arg_valor
+        
+        old_function = self.current_function
+        old_return_type = self.current_return_type
+        self.current_function = nombre
+        self.current_return_type = funcion["tipo"]
+        
+        retorno = None
+        try:
+            self.visit(funcion["ctx"].bloque())
+        except self.ReturnException as r:
+            retorno = r.value
+        
+        self.pop_scope()
+        self.current_function = old_function
+        self.current_return_type = old_return_type
+        
+        return retorno
+
+    def visitReturnStmt(self, ctx):
+        if self.current_function is None:
+            raise Exception("Return fuera de función")
+        
+        if ctx.expresion():
+            valor = self.visit(ctx.expresion())
+            if not self.validar_tipo(self.current_return_type, valor):
+                raise Exception(f"Return espera {self.current_return_type}, devuelve {type(valor).__name__}")
+        else:
+            if self.current_return_type != "void":
+                raise Exception(f"Función {self.current_return_type} debe retornar un valor")
+            valor = None
+        
+        raise self.ReturnException(valor)
+
+    def visitPrintt(self, ctx):
+        valor = self.visit(ctx.expresion())
+        print(valor)
+        return valor
 
     def visitExpresionSi(self, ctx):
         condicion = self.visit(ctx.expresion())
@@ -141,159 +209,73 @@ class Visitor(expresionVisitor):
         while self.visit(ctx.expresion()):
             self.visit(ctx.bloque())
         return None
-    def visitCicloFor(self, ctx): 
-        if ctx.declaracion(): 
-            self.visit(ctx.declaracion()) 
-        else: 
-            self.visit(ctx.asignacion(0)) 
-        condicion = ctx.expresion() 
-        actualizacion = ctx.asignacion()[-1] 
+
+    def visitCicloFor(self, ctx):
+        if ctx.declaracion():
+            self.visit(ctx.declaracion())
+        else:
+            self.visit(ctx.asignacion(0))
         
-        while self.visit(condicion): 
-            self.visit(ctx.bloque()) 
-            self.visit(actualizacion) 
+        while self.visit(ctx.expresion()):
+            self.visit(ctx.bloque())
+            self.visit(ctx.asignacion()[-1])
         return None
 
-    def visitPrintt(self, ctx):
-        valor = self.visit(ctx.expresion())
-        print(valor)
-        return valor
-
-    def visitSuma(self, ctx):
-        resultado = self.visit(ctx.multiplicacion(0))
-        for i in range(1, len(ctx.multiplicacion())):
-            op = ctx.getChild(2*i-1).getText()
-            right = self.visit(ctx.multiplicacion(i))
-            if op == "+":
-                if isinstance(resultado, str) or isinstance(right, str):
-                    resultado = str(resultado) + str(right)
-                else:
-                    resultado = resultado + right   
-            elif op == "-":
-                resultado = resultado - right
-        return resultado
-
-    def visitMultiplicacion(self, ctx):
-        resultado = self.visit(ctx.unico(0))
-        for i in range(1, len(ctx.unico())):
-            op = ctx.getChild(2*i-1).getText()
-            right = self.visit(ctx.unico(i))
-            if op == "*": resultado = resultado * right
-            elif op == "/":
-                if right == 0: raise Exception("División entre cero")
-                resultado = resultado / right
-        return resultado
-
-    def visitUnico(self, ctx):
-        if ctx.NOT(): return not self.visit(ctx.unico())
-        return self.visit(ctx.base())
-
+    # ===== NUEVOS MÉTODOS PARA EXPRESIONES =====
+    
+    def visitExpresion(self, ctx):
+        return self.visit(ctx.comparacion())
+    
     def visitComparacion(self, ctx):
         resultado = self.visit(ctx.suma(0))
         for i in range(1, len(ctx.suma())):
             op = ctx.getChild(2*i-1).getText()
-            right = self.visit(ctx.suma(i))
-            if op == ">": resultado = resultado > right
-            elif op == "<": resultado = resultado < right
-            elif op == ">=": resultado = resultado >= right
-            elif op == "<=": resultado = resultado <= right
+            derecha = self.visit(ctx.suma(i))
+            if op == ">":
+                resultado = resultado > derecha
+            elif op == "<":
+                resultado = resultado < derecha
+            elif op == ">=":
+                resultado = resultado >= derecha
+            elif op == "<=":
+                resultado = resultado <= derecha
         return resultado
-
-    def visitIgualdad(self, ctx):
-        resultado = self.visit(ctx.comparacion(0))
-        for i in range(1, len(ctx.comparacion())):
+    
+    def visitSuma(self, ctx):
+        resultado = self.visit(ctx.termino(0))
+        for i in range(1, len(ctx.termino())):
             op = ctx.getChild(2*i-1).getText()
-            right = self.visit(ctx.comparacion(i))
-            if op == "==": resultado = resultado == right
-            elif op == "!=": resultado = resultado != right
+            derecha = self.visit(ctx.termino(i))
+            if op == "+":
+                resultado = resultado + derecha
+            elif op == "-":
+                resultado = resultado - derecha
         return resultado
-
-    def visitAndLogico(self, ctx):
-        resultado = self.visit(ctx.igualdad(0))
-        for i in range(1, len(ctx.igualdad())):
-            resultado = resultado and self.visit(ctx.igualdad(i))
-        return resultado
-
-    def visitOrLogico(self, ctx):
-        resultado = self.visit(ctx.andLogico(0))
-        for i in range(1, len(ctx.andLogico())):
-            resultado = resultado or self.visit(ctx.andLogico(i))
-        return resultado
-
-    def visitExpresion(self, ctx):
-        return self.visit(ctx.orLogico())
-
-    def validar_tipo(self, tipo, valor):
-        if tipo == "int": return isinstance(valor, int) and not isinstance(valor, bool)
-        elif tipo == "float": return isinstance(valor, float)
-        elif tipo == "string": return isinstance(valor, str)
-        elif tipo == "bool": return isinstance(valor, bool)
-        return False
-
-    def visitFuncion(self, ctx):
-        nombre = ctx.ID().getText()
-        tipo = ctx.TIPO().getText()
-
-        parametros = []
-        if ctx.parametros():
-            for p in ctx.parametros().parametro():
-                param_nombre = p.ID().getText()
-                param_tipo = p.TIPO().getText()
-                parametros.append((param_nombre, param_tipo))
-
-        self.funciones[-1][nombre] = {
-            "tipo": tipo,
-            "parametros": parametros,
-            "ctx": ctx
-        }
-
-        return None
     
-    def visitReturnStmt(self, ctx):
-        if self.current_function is None:
-            raise Exception("Error: return fuera de función")
-
+    def visitTermino(self, ctx):
+        resultado = self.visit(ctx.factor(0))
+        for i in range(1, len(ctx.factor())):
+            op = ctx.getChild(2*i-1).getText()
+            derecha = self.visit(ctx.factor(i))
+            if op == "*":
+                resultado = resultado * derecha
+            elif op == "/":
+                if derecha == 0:
+                    raise Exception("División entre cero")
+                resultado = resultado / derecha
+        return resultado
+    
+    def visitFactor(self, ctx):
+        if ctx.NUM():
+            return int(ctx.NUM().getText())
+        if ctx.STRING():
+            return ctx.STRING().getText().strip('"')
+        if ctx.ID():
+            return self.get_var(ctx.ID().getText())
+        if ctx.llamadaFuncion():
+            return self.visit(ctx.llamadaFuncion())
         if ctx.expresion():
-            valor = self.visit(ctx.expresion())
-        else:
-            valor = None
-
-        raise Visitor.ReturnException(valor)
-    
-    # Cuando llame una funcion:
-    def visitLlamadaFuncion(self, ctx):
-        nombre = ctx.ID().getText()
-        funcion = self.get_funcion(nombre)
-
-        # argumentos
-        argumentos = []
-        if ctx.argumentos():
-            for arg in ctx.argumentos().expresion():
-                argumentos.append(self.visit(arg))
-
-        # nuevo scope
-        self.push_scope()
-
-        # parametros
-        for (param_nombre, param_tipo), valor in zip(funcion["parametros"], argumentos):
-            self.scopes[-1][param_nombre] = valor
-            self.tabla_tipos[-1][param_nombre] = param_tipo
-
-        # ejecutar
-        self.current_function = funcion
-        retorno = None
-
-        try:
-            self.visit(funcion["ctx"].bloque())
-        except Visitor.ReturnException as r:
-            retorno = r.value
-
-        # limpiar
-        self.pop_scope()
-        self.current_function = None
-
-        # retorno limpio
-        if funcion["tipo"] == "void":
-            return None
-
-        return retorno
+            return self.visit(ctx.expresion())
+        if ctx.NOT():
+            return not self.visit(ctx.factor())
+        return 0
