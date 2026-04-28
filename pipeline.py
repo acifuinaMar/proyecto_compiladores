@@ -7,7 +7,7 @@ from parser_phase import ParserPhase
 from semantic_phase import SemanticPhase
 from interpreter_phase import InterpreterPhase
 from tac_generator import TACGenerator
-from ir_generator import IRGenerator
+# from ir_generator import IRGenerator
 
 
 
@@ -43,8 +43,8 @@ class Pipeline:
             return self._resumen()
         
         # Fase 5: LLVM IR
-        if not self._fase_ir():
-            return self._resumen()
+        #if not self._fase_ir():
+            #return self._resumen()
         # Fase 6
         self._fase_ejecucion()
         
@@ -124,31 +124,31 @@ class Pipeline:
             return False
         
     
-    def _fase_ir(self):
-        print("\n[FASE 5] Generación LLVM IR")
-        print("-" * 40)
-        inicio = time.time()
+    #def _fase_ir(self):
+    #    print("\n[FASE 5] Generación LLVM IR")
+    #    print("-" * 40)
+    #    inicio = time.time()
         
-        try:
-            ir_gen = IRGenerator()
-            codigo_ir = ir_gen.visit(self.ast)
-            tiempo = (time.time() - inicio) * 1000
+    #    try:
+    #        ir_gen = IRGenerator()
+    #        codigo_ir = ir_gen.visit(self.ast)
+    #        tiempo = (time.time() - inicio) * 1000
             
             # Guardar archivo .ll
-            with open("salida.ll", "w", encoding='utf-8') as f:
-                f.write(codigo_ir)
+    #        with open("salida.ll", "w", encoding='utf-8') as f:
+    #            f.write(codigo_ir)
             
-            self.resultados["ir"] = {"exitoso": True, "tiempo_ms": tiempo}
-            print(f" Niicee! {tiempo:.2f} ms - {len(codigo_ir.split(chr(10)))} líneas")
-            print(f"Archivo generado: salida.ll")
+    #        self.resultados["ir"] = {"exitoso": True, "tiempo_ms": tiempo}
+    #        print(f" Niicee! {tiempo:.2f} ms - {len(codigo_ir.split(chr(10)))} líneas")
+    #        print(f"Archivo generado: salida.ll")
             
-            return True
+    #        return True
             
-        except Exception as e:
-            self.error_handler.error_ejecucion(0, 0, f"Error generando IR: {str(e)}")
-            self.resultados["ir"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
-            print(f" Error: {e}")
-            return False
+    #    except Exception as e:
+    #        self.error_handler.error_ejecucion(0, 0, f"Error generando IR: {str(e)}")
+    #        self.resultados["ir"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
+    #        print(f" Error: {e}")
+    #        return False
 
     def _fase_ejecucion(self):
         print("\n[FASE 6] Ejecución")
