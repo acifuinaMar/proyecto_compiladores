@@ -1,10 +1,9 @@
 program {
-    int factorial(int n) {
-        si (n <= 1) {
-            return 1;
-        } sino {
-            return n * factorial(n - 1);
-        }
+    int suma = 0;
+    int i = 0;
+    int limite = 10;
+    for (i = 1; i <= limite; i = i + 1) {
+        suma = suma + i;
     }
-    print(factorial(5));
+    print(suma);
 }
