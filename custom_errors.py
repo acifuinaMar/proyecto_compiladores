@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, List
+from antlr4.error.ErrorListener import ErrorListener
 
 class ErrorType(Enum):
     """Tipos de errores del compilador"""
@@ -111,11 +112,23 @@ class ErrorHandler:
 
 
 # Clase auxiliar para ANTLR
-class ANTLRErrorListener:
+class ANTLRErrorListener(ErrorListener):
+    """Adaptador para capturar errores de ANTLR"""
     
-    def __init__(self, error_handler: ErrorHandler):
+    def __init__(self, error_handler):
+        super().__init__()
         self.error_handler = error_handler
     
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         token_text = offendingSymbol.text if offendingSymbol else None
         self.error_handler.error_sintactico(line, column, msg, token_text)
+    
+    # Estos métodos son necesarios para la nueva versión de ANTLR
+    def reportAmbiguity(self, recognizer, dfa, startIndex, stopIndex, exact, ambigAlts, configs):
+        pass
+    
+    def reportAttemptingFullContext(self, recognizer, dfa, startIndex, stopIndex, conflictingAlts, configs):
+        pass
+    
+    def reportContextSensitivity(self, recognizer, dfa, startIndex, stopIndex, prediction, configs):
+        pass
