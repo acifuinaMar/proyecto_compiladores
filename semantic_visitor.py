@@ -6,6 +6,7 @@ class SemanticVisitor(gramatica_finalVisitor):
     def __init__(self):
         self.tabla_tipos = [{}] 
         self.errores = []
+        self.en_ciclo = 0
 
     def push_scope(self):
         self.tabla_tipos.append({})
@@ -56,17 +57,23 @@ class SemanticVisitor(gramatica_finalVisitor):
     def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
         tipo = ctx.TIPO().getText()
-        
+
+        # detectar array
+        if ctx.CORI():
+            tipo = tipo + "[]"
+
         if nombre in self.tabla_tipos[-1]: 
             self.registrar_error(ctx, f"Variable '{nombre}' ya declarada en este ámbito")
         else:
             self.tabla_tipos[-1][nombre] = tipo
-            
+
+        # validar asignación
         if ctx.expresion():
             tipo_exp = self.visit(ctx.expresion())
             if tipo and tipo_exp and tipo != tipo_exp:
                 if not (tipo == "float" and tipo_exp == "int"):
                     self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo} y recibe {tipo_exp}")
+
         return tipo
 
     def visitAsignacion(self, ctx):
@@ -98,9 +105,12 @@ class SemanticVisitor(gramatica_finalVisitor):
         tipo_cond = self.visit(ctx.expresion())
         if tipo_cond and tipo_cond != "bool":
             self.registrar_error(ctx, f"Condición del while debe ser booleana, recibe {tipo_cond}")
+
+        self.en_ciclo += 1
         self.push_scope()
         self.visit(ctx.bloque())
         self.pop_scope()
+        self.en_ciclo -= 1
         return None
 
     def visitCicloFor(self, ctx):
@@ -114,11 +124,22 @@ class SemanticVisitor(gramatica_finalVisitor):
             self.registrar_error(ctx, f"Condición del for debe ser booleana, recibe {tipo_cond}")
         
         self.visit(ctx.asignacion()[-1])
+
+        self.en_ciclo += 1
         self.push_scope()
         self.visit(ctx.bloque())
         self.pop_scope()
+        self.en_ciclo -= 1
+        return None
+    def visitBreakStmt(self, ctx):
+        if self.en_ciclo == 0:
+            self.registrar_error(ctx, "break fuera de un ciclo")
         return None
 
+    def visitContinueStmt(self, ctx):
+        if self.en_ciclo == 0:
+            self.registrar_error(ctx, "continue fuera de un ciclo")
+        return None
     def visitLlamadaFuncion(self, ctx):
         nombre = ctx.ID().getText()
         tipo = self.get_tipo_var(nombre)
@@ -132,6 +153,7 @@ class SemanticVisitor(gramatica_finalVisitor):
             return self.visit(ctx.expresion())
         return "void"
 
+    
     def visitPrintt(self, ctx):
         self.visit(ctx.expresion())
         return None
@@ -162,19 +184,51 @@ class SemanticVisitor(gramatica_finalVisitor):
     
     def visitTermino(self, ctx):
         resultado = self.visit(ctx.factor(0))
+
         for i in range(1, len(ctx.factor())):
             t_sig = self.visit(ctx.factor(i))
-            if resultado == "float" or t_sig == "float":
-                resultado = "float"
-            else:
+
+            # detectar operador
+            op = ctx.getChild(2*i - 1).getText()
+
+            if op == '%':
+                if resultado != "int" or t_sig != "int":
+                    self.registrar_error(ctx, "Operador % solo válido para enteros")
                 resultado = "int"
+            else:
+                if resultado == "float" or t_sig == "float":
+                    resultado = "float"
+                else:
+                    resultado = "int"
+
         return resultado
     
     def visitFactor(self, ctx):
         if ctx.NUM():
             return "int"
+
         if ctx.STRING():
             return "string"
+
+        # acceso array
+        if ctx.ID() and ctx.CORI():
+            nombre = ctx.ID().getText()
+            tipo = self.get_tipo_var(nombre)
+
+            if not tipo:
+                self.registrar_error(ctx, f"Variable '{nombre}' no está definida")
+                return "int"
+
+            if not tipo.endswith("[]"):
+                self.registrar_error(ctx, f"'{nombre}' no es un arreglo")
+                return "int"
+
+            tipo_index = self.visit(ctx.expresion())
+            if tipo_index != "int":
+                self.registrar_error(ctx, f"Índice de arreglo debe ser int")
+
+            return tipo.replace("[]", "")
+
         if ctx.ID():
             nombre = ctx.ID().getText()
             tipo = self.get_tipo_var(nombre)
@@ -182,10 +236,14 @@ class SemanticVisitor(gramatica_finalVisitor):
                 self.registrar_error(ctx, f"Variable '{nombre}' no está definida")
                 return "int"
             return tipo
+
         if ctx.llamadaFuncion():
             return self.visit(ctx.llamadaFuncion())
+
         if ctx.expresion():
             return self.visit(ctx.expresion())
+
         if ctx.NOT():
             return "bool"
+
         return "void"

@@ -6,6 +6,7 @@ from lexer_phase import LexerPhase
 from parser_phase import ParserPhase
 from tac_generator import TACGenerator
 from visitor import Visitor
+from semantic_phase import SemanticPhase
 
 
 class Pipeline:
@@ -13,6 +14,7 @@ class Pipeline:
         self.error_handler = ErrorHandler(detener_en_primera_falla=True)
         self.ast = None
         self.resultados = {}
+    
     
     def ejecutar(self, codigo):
         self.error_handler.limpiar()
@@ -26,6 +28,9 @@ class Pipeline:
             return self._resumen()
         
         if not self._fase_sintactica(codigo):
+            return self._resumen()
+        
+        if not self._fase_semantica():
             return self._resumen()
         
         if not self._fase_tac():
@@ -60,9 +65,28 @@ class Pipeline:
         self.resultados["sintactico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
         print(f"  {'Nice :D' if exitoso else 'Error :/'} {tiempo:.2f} ms - AST generado")
         return exitoso
+    def _fase_semantica(self):
+        print("\n[FASE 3] Análisis Semántico")
+        print("-" * 40)
+        inicio = time.time()
+        
+        try:
+            fase = SemanticPhase(self.error_handler)
+            exitoso, _ = fase.ejecutar(self.ast)
+            tiempo = (time.time() - inicio) * 1000
+            
+            self.resultados["semantico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
+            print(f"  {'Nice :D' if exitoso else 'Error :/'} {tiempo:.2f} ms")
+            
+            return exitoso
+        except Exception as e:
+            self.error_handler.error_ejecucion(0, 0, str(e))
+            self.resultados["semantico"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
+            print(f"  Error: {e}")
+            return False
     
     def _fase_tac(self):
-        print("\n[FASE 3] Generación TAC")
+        print("\n[FASE 4] Generación TAC")
         print("-" * 40)
         inicio = time.time()
         
@@ -89,7 +113,7 @@ class Pipeline:
             return False
     
     def _fase_ejecucion(self):
-        print("\n[FASE 4] Ejecución")
+        print("\n[FASE 5] Ejecución")
         print("-" * 40)
         inicio = time.time()
         

@@ -17,7 +17,7 @@ class LexerPhase:
             token = lexer.nextToken()
             while token.type != Token.EOF:
                 tokens.append({
-                    "tipo": lexer.symbolicNames[token.type],
+                    "tipo": lexer.symbolicNames[token.type] if token.type >= 0 and token.type < len(lexer.symbolicNames) else str(token.type),
                     "texto": token.text,
                     "linea": token.line,
                     "columna": token.column

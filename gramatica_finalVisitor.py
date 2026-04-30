@@ -19,6 +19,11 @@ class gramatica_finalVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramatica_finalParser#importStmt.
+    def visitImportStmt(self, ctx:gramatica_finalParser.ImportStmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramatica_finalParser#sentenciaGlobal.
     def visitSentenciaGlobal(self, ctx:gramatica_finalParser.SentenciaGlobalContext):
         return self.visitChildren(ctx)
@@ -44,6 +49,11 @@ class gramatica_finalVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramatica_finalParser#arrayLiteral.
+    def visitArrayLiteral(self, ctx:gramatica_finalParser.ArrayLiteralContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramatica_finalParser#sentencia.
     def visitSentencia(self, ctx:gramatica_finalParser.SentenciaContext):
         return self.visitChildren(ctx)
@@ -66,6 +76,16 @@ class gramatica_finalVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramatica_finalParser#cicloFor.
     def visitCicloFor(self, ctx:gramatica_finalParser.CicloForContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#breakStmt.
+    def visitBreakStmt(self, ctx:gramatica_finalParser.BreakStmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#continueStmt.
+    def visitContinueStmt(self, ctx:gramatica_finalParser.ContinueStmtContext):
         return self.visitChildren(ctx)
 
 

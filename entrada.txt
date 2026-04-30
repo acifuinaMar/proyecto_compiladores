@@ -1,9 +1,22 @@
 program {
-    int suma = 0;
+    int[] nums = [3,1,4,1,5];
+    int total = 0;
     int i = 0;
-    int limite = 10;
-    for (i = 1; i <= limite; i = i + 1) {
-        suma = suma + i;
+
+    while (i < 5) {
+        int r = nums[i] % 2;
+        si (r == 0) {
+            total = total + nums[i];
+        }
+        i = i + 1;
+        si (total > 10) { break; }
     }
-    print(suma);
+
+    int fibonacci(int n) {
+        si (n <= 1) { return n; }
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+
+    print(fibonacci(6));
+    print(total);
 }
