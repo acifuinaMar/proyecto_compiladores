@@ -1,22 +1,22 @@
 program {
-    int[] nums = [3,1,4,1,5];
-    int total = 0;
-    int i = 0;
+    int nota = 85;
+    int resultado = 0;
 
-    while (i < 5) {
-        int r = nums[i] % 2;
-        si (r == 0) {
-            total = total + nums[i];
+    si (nota >= 61) {
+        print(1); 
+        si (nota >= 90) {
+            resultado = 100;
+        } sino {
+            si (nota >= 80) {
+                resultado = 80;
+            } sino {
+                resultado = 60;
+            }
         }
-        i = i + 1;
-        si (total > 10) { break; }
+    } sino {
+        print(0);
+        resultado = 0;
     }
 
-    int fibonacci(int n) {
-        si (n <= 1) { return n; }
-        return fibonacci(n - 1) + fibonacci(n - 2);
-    }
-
-    print(fibonacci(6));
-    print(total);
+    print(resultado);
 }

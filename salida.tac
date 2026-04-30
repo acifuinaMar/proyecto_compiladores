@@ -1,33 +1,25 @@
 # Código TAC generado
-nums = [3, 1, 4, 1, 5]
-total = 0
-i = 0
+nota = 85
+resultado = 0
+  t1 = nota >= 61
+  if t1 goto L1
+  print 0
+resultado = 0
+  goto L2
 L1:
-  t1 = i < 5
-  if t1 goto L2
-  goto L3
-L2:
-  t2 = nums[i]
-  t3 = t2 % 2
-r = t3
-  t4 = r == 0
-  if t4 goto L4
-  goto L5
-L4:
-  t5 = nums[i]
-  t6 = total + t5
-total = t6
+  print 1
+  t2 = nota >= 90
+  if t2 goto L3
+  t3 = nota >= 80
+  if t3 goto L5
+resultado = 60
+  goto L6
 L5:
-  t7 = i + 1
-i = t7
-  t8 = total > 10
-  if t8 goto L6
-  goto L7
+resultado = 80
 L6:
-  goto L3
-L7:
-  goto L1
+  goto L4
 L3:
-  t9 = call fibonacci, 6
-  print t9
-  print total
+resultado = 100
+L4:
+L2:
+  print resultado

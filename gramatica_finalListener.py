@@ -26,6 +26,15 @@ class gramatica_finalListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by gramatica_finalParser#importStmt.
+    def enterImportStmt(self, ctx:gramatica_finalParser.ImportStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#importStmt.
+    def exitImportStmt(self, ctx:gramatica_finalParser.ImportStmtContext):
+        pass
+
+
     # Enter a parse tree produced by gramatica_finalParser#sentenciaGlobal.
     def enterSentenciaGlobal(self, ctx:gramatica_finalParser.SentenciaGlobalContext):
         pass
@@ -71,6 +80,15 @@ class gramatica_finalListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by gramatica_finalParser#arrayLiteral.
+    def enterArrayLiteral(self, ctx:gramatica_finalParser.ArrayLiteralContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#arrayLiteral.
+    def exitArrayLiteral(self, ctx:gramatica_finalParser.ArrayLiteralContext):
+        pass
+
+
     # Enter a parse tree produced by gramatica_finalParser#sentencia.
     def enterSentencia(self, ctx:gramatica_finalParser.SentenciaContext):
         pass
@@ -113,6 +131,24 @@ class gramatica_finalListener(ParseTreeListener):
 
     # Exit a parse tree produced by gramatica_finalParser#cicloFor.
     def exitCicloFor(self, ctx:gramatica_finalParser.CicloForContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#breakStmt.
+    def enterBreakStmt(self, ctx:gramatica_finalParser.BreakStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#breakStmt.
+    def exitBreakStmt(self, ctx:gramatica_finalParser.BreakStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#continueStmt.
+    def enterContinueStmt(self, ctx:gramatica_finalParser.ContinueStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#continueStmt.
+    def exitContinueStmt(self, ctx:gramatica_finalParser.ContinueStmtContext):
         pass
 
 
