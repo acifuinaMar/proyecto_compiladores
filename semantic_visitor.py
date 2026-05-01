@@ -1,10 +1,12 @@
-from expresionVisitor import expresionVisitor
+# semantic_visitor.py - Versión corregida
+from gramatica_finalVisitor import gramatica_finalVisitor
 
-class SemanticVisitor(expresionVisitor):
+class SemanticVisitor(gramatica_finalVisitor):
 
     def __init__(self):
         self.tabla_tipos = [{}] 
         self.errores = []
+        self.en_ciclo = 0
 
     def push_scope(self):
         self.tabla_tipos.append({})
@@ -13,35 +15,33 @@ class SemanticVisitor(expresionVisitor):
         self.tabla_tipos.pop()
 
     def get_tipo_var(self, nombre):
-        """Busca el tipo de una variable desde el ámbito local al global"""
         for t_scope in reversed(self.tabla_tipos):
             if nombre in t_scope:
                 return t_scope[nombre]
         return None
 
     def registrar_error(self, ctx, mensaje):
-        """Reporta error con línea y columna exacta"""
         linea = ctx.start.line
         columna = ctx.start.column
         self.errores.append(f"[Error Semántico] Línea {linea}, Columna {columna}: {mensaje}")
 
     def visitRoot(self, ctx):
-        for s in ctx.sentencia():
-            self.visit(s)
+        for prog in ctx.programa():
+            self.visit(prog)
         return self.errores
 
     def visitBloque(self, ctx):
+        self.push_scope()
         for s in ctx.sentencia():
             self.visit(s)
+        self.pop_scope()
         return None
 
     def visitFuncion(self, ctx):
-        """Paso crítico: Registra parámetros antes de validar el cuerpo"""
         nombre_func = ctx.ID().getText()
         tipo_retorno = ctx.TIPO().getText()
         
         self.tabla_tipos[0][nombre_func] = tipo_retorno 
-
         self.push_scope() 
         
         if ctx.parametros():
@@ -51,21 +51,29 @@ class SemanticVisitor(expresionVisitor):
                 self.tabla_tipos[-1][p_nombre] = p_tipo
         
         self.visit(ctx.bloque())
-        
         self.pop_scope()
         return None
 
     def visitDeclaracion(self, ctx):
         nombre = ctx.ID().getText()
         tipo = ctx.TIPO().getText()
-        
+
+        # detectar array
+        if ctx.CORI():
+            tipo = tipo + "[]"
+
         if nombre in self.tabla_tipos[-1]: 
-            self.registrar_error(ctx, f"La variable '{nombre}' ya ha sido declarada en este nivel.")
+            self.registrar_error(ctx, f"Variable '{nombre}' ya declarada en este ámbito")
         else:
             self.tabla_tipos[-1][nombre] = tipo
-            
+
+        # validar asignación
         if ctx.expresion():
-            self.visit(ctx.expresion())
+            tipo_exp = self.visit(ctx.expresion())
+            if tipo and tipo_exp and tipo != tipo_exp:
+                if not (tipo == "float" and tipo_exp == "int"):
+                    self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo} y recibe {tipo_exp}")
+
         return tipo
 
     def visitAsignacion(self, ctx):
@@ -73,198 +81,169 @@ class SemanticVisitor(expresionVisitor):
         tipo_declarado = self.get_tipo_var(nombre)
         
         if not tipo_declarado:
-            self.registrar_error(ctx, f"La variable '{nombre}' no ha sido declarada.")
+            self.registrar_error(ctx, f"Variable '{nombre}' no ha sido declarada")
             return None
 
         tipo_valor = self.visit(ctx.expresion())
         
-        if not tipo_valor:
-            return tipo_declarado 
-
-        if tipo_declarado != tipo_valor:
+        if tipo_valor and tipo_declarado != tipo_valor:
             if not (tipo_declarado == "float" and tipo_valor == "int"):
-                self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo_declarado} y recibio {tipo_valor}")
+                self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo_declarado} y recibe {tipo_valor}")
         
         return tipo_declarado
 
+    def visitExpresionSi(self, ctx):
+        tipo_cond = self.visit(ctx.expresion())
+        if tipo_cond and tipo_cond != "bool":
+            self.registrar_error(ctx, f"Condición del if debe ser booleana, recibe {tipo_cond}")
+        self.visit(ctx.bloque(0))
+        if ctx.SINO():
+            self.visit(ctx.bloque(1))
+        return None
+
     def visitCicloWhile(self, ctx):
-        if self.visit(ctx.expresion()) != "bool":
-            self.registrar_error(ctx, "Condición de while debe ser bool.")
+        tipo_cond = self.visit(ctx.expresion())
+        if tipo_cond and tipo_cond != "bool":
+            self.registrar_error(ctx, f"Condición del while debe ser booleana, recibe {tipo_cond}")
+
+        self.en_ciclo += 1
         self.push_scope()
         self.visit(ctx.bloque())
         self.pop_scope()
+        self.en_ciclo -= 1
         return None
 
+    def visitCicloFor(self, ctx):
+        if ctx.declaracion():
+            self.visit(ctx.declaracion())
+        else:
+            self.visit(ctx.asignacion(0))
+        
+        tipo_cond = self.visit(ctx.expresion())
+        if tipo_cond and tipo_cond != "bool":
+            self.registrar_error(ctx, f"Condición del for debe ser booleana, recibe {tipo_cond}")
+        
+        self.visit(ctx.asignacion()[-1])
+
+        self.en_ciclo += 1
+        self.push_scope()
+        self.visit(ctx.bloque())
+        self.pop_scope()
+        self.en_ciclo -= 1
+        return None
+    def visitBreakStmt(self, ctx):
+        if self.en_ciclo == 0:
+            self.registrar_error(ctx, "break fuera de un ciclo")
+        return None
+
+    def visitContinueStmt(self, ctx):
+        if self.en_ciclo == 0:
+            self.registrar_error(ctx, "continue fuera de un ciclo")
+        return None
     def visitLlamadaFuncion(self, ctx):
-        """Valida que la función llamada exista"""
         nombre = ctx.ID().getText()
         tipo = self.get_tipo_var(nombre)
         if not tipo:
-            self.registrar_error(ctx, f"Función '{nombre}' no definida.")
-        return "int"
+            self.registrar_error(ctx, f"Función '{nombre}' no definida")
+            return "int"
+        return tipo
 
-    def visitBase(self, ctx):
+    def visitReturnStmt(self, ctx):
+        if ctx.expresion():
+            return self.visit(ctx.expresion())
+        return "void"
+
+    
+    def visitPrintt(self, ctx):
+        self.visit(ctx.expresion())
+        return None
+
+    def visitExpresion(self, ctx):
+        return self.visit(ctx.comparacion())
+    
+    def visitComparacion(self, ctx):
+        # Si hay operadores relacionales, retorna bool
+        if len(ctx.suma()) > 1:
+            for i in range(len(ctx.suma())):
+                self.visit(ctx.suma(i))
+            return "bool"
+        # Si es solo una expresión, retorna su tipo
+        return self.visit(ctx.suma(0))
+    
+    def visitSuma(self, ctx):
+        resultado = self.visit(ctx.termino(0))
+        for i in range(1, len(ctx.termino())):
+            t_sig = self.visit(ctx.termino(i))
+            if resultado == "string" or t_sig == "string":
+                resultado = "string"
+            elif resultado == "float" or t_sig == "float":
+                resultado = "float"
+            else:
+                resultado = "int"
+        return resultado
+    
+    def visitTermino(self, ctx):
+        resultado = self.visit(ctx.factor(0))
+
+        for i in range(1, len(ctx.factor())):
+            t_sig = self.visit(ctx.factor(i))
+
+            # detectar operador
+            op = ctx.getChild(2*i - 1).getText()
+
+            if op == '%':
+                if resultado != "int" or t_sig != "int":
+                    self.registrar_error(ctx, "Operador % solo válido para enteros")
+                resultado = "int"
+            else:
+                if resultado == "float" or t_sig == "float":
+                    resultado = "float"
+                else:
+                    resultado = "int"
+
+        return resultado
+    
+    def visitFactor(self, ctx):
+        if ctx.NUM():
+            return "int"
+
+        if ctx.STRING():
+            return "string"
+
+        # acceso array
+        if ctx.ID() and ctx.CORI():
+            nombre = ctx.ID().getText()
+            tipo = self.get_tipo_var(nombre)
+
+            if not tipo:
+                self.registrar_error(ctx, f"Variable '{nombre}' no está definida")
+                return "int"
+
+            if not tipo.endswith("[]"):
+                self.registrar_error(ctx, f"'{nombre}' no es un arreglo")
+                return "int"
+
+            tipo_index = self.visit(ctx.expresion())
+            if tipo_index != "int":
+                self.registrar_error(ctx, f"Índice de arreglo debe ser int")
+
+            return tipo.replace("[]", "")
+
         if ctx.ID():
             nombre = ctx.ID().getText()
             tipo = self.get_tipo_var(nombre)
             if not tipo:
-                self.registrar_error(ctx, f"La variable '{nombre}' no está definida.")
+                self.registrar_error(ctx, f"Variable '{nombre}' no está definida")
                 return "int"
             return tipo
-        if ctx.NUM(): return "int"
-        if ctx.FLOAT(): return "float"
-        if ctx.STRING(): return "string"
-        if ctx.VERDADERO() or ctx.FALSO(): return "bool"
-        if ctx.expresion(): return self.visit(ctx.expresion())
-        if hasattr(ctx, 'llamadaFuncion') and ctx.llamadaFuncion():
+
+        if ctx.llamadaFuncion():
             return self.visit(ctx.llamadaFuncion())
-        return "void"
 
-    def visitSuma(self, ctx):
-        tipo = self.visit(ctx.multiplicacion(0))
-        for i in range(1, len(ctx.multiplicacion())):
-            t_sig = self.visit(ctx.multiplicacion(i))
-            if tipo == "string" or t_sig == "string":
-                tipo = "string"
-            elif tipo == "float" or t_sig == "float":
-                tipo = "float"
-            else:
-                tipo = "int"
-        return tipo
-
-    def visitPrintt(self, ctx):
-        self.visit(ctx.expresion())
-        return None
-    
-    def visitReturnStmt(self, ctx):
         if ctx.expresion():
             return self.visit(ctx.expresion())
-        return "void"
-    
-    def visitFuncion(self, ctx):
-        nombre_func = ctx.ID().getText()
-        tipo_retorno = ctx.TIPO().getText()
-        
-        self.tabla_tipos[0][nombre_func] = {"tipo": tipo_retorno}
-        
-        self.push_scope()
-        
-        if ctx.parametros():
-            for p in ctx.parametros().parametro():
-                p_nombre = p.ID().getText()
-                p_tipo = p.TIPO().getText()
-                self.tabla_tipos[-1][p_nombre] = p_tipo
-        
-        self.visit(ctx.bloque())
-        
-        self.pop_scope()
-        return None
 
-    def visitParametro(self, ctx):
-        tipo = ctx.TIPO().getText()
-        nombre = ctx.ID().getText()
-        self.tabla_tipos[-1][nombre] = tipo
-        return tipo
-
-    def visitReturnStmt(self, ctx):
-        if ctx.expresion():
-            return self.visit(ctx.expresion())
-        return "void"
-
-    def visitLlamadaFuncion(self, ctx):
-        nombre = ctx.ID().getText()
-        func_info = self.tabla_tipos[0].get(nombre)
-        if not func_info:
-            self.registrar_error(ctx, f"La función '{nombre}' no ha sido definida.")
-            return "int"
-        return func_info["tipo"]
-    
-    def visitParametro(self, ctx):
-        tipo = ctx.TIPO().getText()
-        nombre = ctx.ID().getText()
-        self.tabla_tipos[-1][nombre] = tipo
-        return tipo
-    
-    def visitOrLogico(self, ctx):
-        for i in range(len(ctx.andLogico())):
-            self.visit(ctx.andLogico(i))
-        return "bool"
-
-    def visitAndLogico(self, ctx):
-        for i in range(len(ctx.igualdad())):
-            self.visit(ctx.igualdad(i))
-        return "bool"
-
-    def visitIgualdad(self, ctx):
-        for i in range(len(ctx.comparacion())):
-            self.visit(ctx.comparacion(i))
-        return "bool"
-
-    def visitComparacion(self, ctx):
-        for i in range(len(ctx.suma())):
-            self.visit(ctx.suma(i))
-        return "bool"
-    
-    def visitMultiplicacion(self, ctx):
-        tipo = self.visit(ctx.unico(0))
-        for i in range(1, len(ctx.unico())):
-            t_sig = self.visit(ctx.unico(i))
-            if tipo == "float" or t_sig == "float":
-                tipo = "float"
-            else:
-                tipo = "int"
-        return tipo
-
-    def visitUnico(self, ctx):
         if ctx.NOT():
-            self.visit(ctx.unico())
             return "bool"
-        return self.visit(ctx.base())
-    
-    def visitMultiplicacion(self, ctx):
-        tipo = self.visit(ctx.unico(0))
-        for i in range(1, len(ctx.unico())):
-            t_sig = self.visit(ctx.unico(i))
-            if tipo == "float" or t_sig == "float":
-                tipo = "float"
-            else:
-                tipo = "int"
-        return tipo
 
-    def visitUnico(self, ctx):
-        if ctx.NOT():
-            self.visit(ctx.unico())
-            return "bool"
-        return self.visit(ctx.base())
-
-    def visitOrLogico(self, ctx):
-        tipo = self.visit(ctx.andLogico(0))
-        if len(ctx.andLogico()) > 1:
-            for i in range(1, len(ctx.andLogico())):
-                self.visit(ctx.andLogico(i))
-            return "bool"
-        return tipo
-
-    def visitAndLogico(self, ctx):
-        tipo = self.visit(ctx.igualdad(0))
-        if len(ctx.igualdad()) > 1:
-            for i in range(1, len(ctx.igualdad())):
-                self.visit(ctx.igualdad(i))
-            return "bool"
-        return tipo
-
-    def visitIgualdad(self, ctx):
-        tipo = self.visit(ctx.comparacion(0))
-        if len(ctx.comparacion()) > 1:
-            for i in range(1, len(ctx.comparacion())):
-                self.visit(ctx.comparacion(i))
-            return "bool"
-        return tipo
-
-    def visitComparacion(self, ctx):
-        tipo = self.visit(ctx.suma(0))
-        if len(ctx.suma()) > 1:
-            for i in range(1, len(ctx.suma())):
-                self.visit(ctx.suma(i))
-            return "bool"
-        return tipo
+        return "void"
