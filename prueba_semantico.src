@@ -1,0 +1,7 @@
+program {
+    int suma(int a, int b){
+        return a + b;
+    }
+
+    print(suma(5));   // ERROR: falta argumento
+}

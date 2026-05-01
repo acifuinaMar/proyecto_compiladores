@@ -1,52 +1,6 @@
 program {
-
-    // ===== Arreglo + acumulación =====
-    int[] nums = [3, 1, 4, 1, 5];
-    int total = 0;
-    int i = 0;
-
-    while (i < 5) {
-        int val = nums[i];
-
-        si (val % 2 == 0) {
-            total = total + val;
-        }
-
-        i = i + 1;
-
-        si (total > 10) {
-            break;
-        }
-    }
-
-    // ===== Función recursiva =====
-    int fib(int n){
-        si(n <= 1){
-            return n;
-        }
-        return fib(n-1) + fib(n-2);
-    }
-
-    // ===== Strings + concat =====
-    string msg = "Resultado fib: ";
-    print(msg + "listo");
-
-    // ===== Uso de función =====
-    int r = fib(6);
-    print(r);
-
-    // ===== Continue test =====
-    int j = 0;
-    while (j < 5) {
-        j = j + 1;
-
-        si (j == 3) {
-            continue;
-        }
-
-        print(j);
-    }
-
-    print("Total pares:");
-    print(total);
+    int x = 10;
+    int y = 3;
+    int z = x % y;
+    print(z);
 }

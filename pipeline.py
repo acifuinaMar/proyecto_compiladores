@@ -7,6 +7,7 @@ from parser_phase import ParserPhase
 from tac_generator import TACGenerator
 from visitor import Visitor
 from semantic_phase import SemanticPhase
+from ir_generator import IRGenerator  # <-- Importación del nuevo generador
 
 
 class Pipeline:
@@ -15,13 +16,12 @@ class Pipeline:
         self.ast = None
         self.resultados = {}
     
-    
     def ejecutar(self, codigo):
         self.error_handler.limpiar()
         self.resultados = {}
         
         print("\n" + "="*60)
-        print("COMPILADOR - PIPELINE v3.0")
+        print("COMPILADOR - PIPELINE v3.0 (LLVM ENABLED)")
         print("="*60)
         
         if not self._fase_lexica(codigo):
@@ -34,6 +34,10 @@ class Pipeline:
             return self._resumen()
         
         if not self._fase_tac():
+            return self._resumen()
+        
+        # --- NUEVA FASE DE LLVM ---
+        if not self._fase_llvm():
             return self._resumen()
         
         self._fase_ejecucion()
@@ -65,6 +69,7 @@ class Pipeline:
         self.resultados["sintactico"] = {"exitoso": exitoso, "tiempo_ms": tiempo}
         print(f"  {'Nice :D' if exitoso else 'Error :/'} {tiempo:.2f} ms - AST generado")
         return exitoso
+
     def _fase_semantica(self):
         print("\n[FASE 3] Análisis Semántico")
         print("-" * 40)
@@ -99,21 +104,38 @@ class Pipeline:
                 f.write(codigo_tac)
             
             self.resultados["tac"] = {"exitoso": True, "tiempo_ms": tiempo}
-            print(f" Nice{tiempo:.2f} ms - {len(tac_gen.instructions)} instrucciones")
-            print(f" Archivo: salida.tac")
-            
-            print("\n--- Código TAC generado ---")
-            print(codigo_tac)
-            
+            print(f"  Nice {tiempo:.2f} ms - {len(tac_gen.instructions)} instrucciones")
+            print(f"  Archivo: salida.tac")
             return True
         except Exception as e:
             self.error_handler.error_ejecucion(0, 0, str(e))
             self.resultados["tac"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
-            print(f" Error: {e}")
+            print(f"  Error: {e}")
             return False
-    
+
+    def _fase_llvm(self):
+        print("\n[FASE 5] Generación LLVM IR")
+        print("-" * 40)
+        inicio = time.time()
+        try:
+            generator = IRGenerator()
+            codigo_llvm = generator.visit(self.ast)
+            tiempo = (time.time() - inicio) * 1000
+            
+            with open("salida.ll", "w", encoding='utf-8') as f:
+                f.write(codigo_llvm)
+                
+            self.resultados["llvm"] = {"exitoso": True, "tiempo_ms": tiempo}
+            print(f"  Nice :D {tiempo:.2f} ms - Archivo: salida.ll")
+            return True
+        except Exception as e:
+            self.error_handler.error_ejecucion(0, 0, str(e))
+            self.resultados["llvm"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
+            print(f"  Error: {e}")
+            return False
+
     def _fase_ejecucion(self):
-        print("\n[FASE 5] Ejecución")
+        print("\n[FASE 6] Ejecución (Interpreter Mode)")
         print("-" * 40)
         inicio = time.time()
         
@@ -123,12 +145,12 @@ class Pipeline:
             tiempo = (time.time() - inicio) * 1000
             
             self.resultados["ejecucion"] = {"exitoso": True, "tiempo_ms": tiempo}
-            print(f" Nice {tiempo:.2f} ms - Ejecución completada")
+            print(f"  Nice {tiempo:.2f} ms - Ejecución completada")
             return True
         except Exception as e:
             self.error_handler.error_ejecucion(0, 0, str(e))
             self.resultados["ejecucion"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
-            print(f" Error: {e}")
+            print(f"  Error: {e}")
             return False
     
     def _resumen(self):
@@ -144,7 +166,7 @@ class Pipeline:
         print(f"\n  TOTAL: {total:.2f} ms")
         
         if self.error_handler.tiene_errores():
-            print(f"\n ERRORES: {len(self.error_handler.errores)}")
+            print(f"\n  ERRORES: {len(self.error_handler.errores)}")
             for e in self.error_handler.errores[:3]:
                 print(f"     • {e}")
         
@@ -154,7 +176,6 @@ class Pipeline:
 
 def main():
     archivo = sys.argv[1] if len(sys.argv) > 1 else "prueba.txt"
-    
     print(f"\nArchivo: {archivo}")
     
     with open(archivo, 'r', encoding='utf-8') as f:
