@@ -1,22 +1,6 @@
 program {
-    int nota = 85;
-    int resultado = 0;
-
-    si (nota >= 61) {
-        print(1); 
-        si (nota >= 90) {
-            resultado = 100;
-        } sino {
-            si (nota >= 80) {
-                resultado = 80;
-            } sino {
-                resultado = 60;
-            }
-        }
-    } sino {
-        print(0);
-        resultado = 0;
-    }
-
-    print(resultado);
+    int x = 10;
+    int y = 3;
+    int z = x % y;
+    print(z);
 }

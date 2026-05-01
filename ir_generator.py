@@ -4,6 +4,7 @@ from gramatica_finalVisitor import gramatica_finalVisitor
 
 class IRGenerator(gramatica_finalVisitor):
     def __init__(self):
+        # Inicialización del entorno de LLVM
         llvm.initialize_native_target()
         llvm.initialize_native_asmprinter()
         
@@ -15,9 +16,11 @@ class IRGenerator(gramatica_finalVisitor):
         self.func = None
         self.variables = {}
         
+        # Definición de tipos básicos
         self.int_type = ir.IntType(32)
         self.char_ptr = ir.IntType(8).as_pointer()
 
+        # Declaración de la función printf para la salida de datos
         printf_ty = ir.FunctionType(self.int_type, [self.char_ptr], var_arg=True)
         self.printf = ir.Function(self.module, printf_ty, name="printf")
 
@@ -36,7 +39,8 @@ class IRGenerator(gramatica_finalVisitor):
     # --- MANEJO DE VARIABLES Y ARREGLOS ---
     def visitDeclaracion(self, ctx):
         name = ctx.ID().getText()
-        if ctx.CORI():  # Es un arreglo: TIPO [] ID
+        # Si la gramática detecta corchetes [], es un arreglo
+        if ctx.CORI():  
             size = 10 
             if ctx.arrayLiteral():
                 expr_list = ctx.arrayLiteral().expresion()
@@ -54,6 +58,7 @@ class IRGenerator(gramatica_finalVisitor):
                                                  ir.Constant(self.int_type, i)])
                     self.builder.store(val, p_idx)
         else:
+            # Declaración de variable simple
             with self.builder.goto_entry_block():
                 ptr = self.builder.alloca(self.int_type, name=name)
             self.variables[name] = ptr
@@ -68,21 +73,34 @@ class IRGenerator(gramatica_finalVisitor):
             self.builder.store(val, self.variables[name])
         return val
 
-    def visitFactor(self, ctx):
-        if ctx.NUM(): 
-            return ir.Constant(self.int_type, int(ctx.NUM().getText()))
-        if ctx.ID(): 
-            name = ctx.ID().getText()
-            ptr = self.variables.get(name)
-            if ptr:
-                if ctx.CORI(): # Acceso: numeros[idx]
-                    idx = self.visit(ctx.expresion())
-                    p_idx = self.builder.gep(ptr, [ir.Constant(self.int_type, 0), idx])
-                    return self.builder.load(p_idx, name=f"arr_load_{name}")
-                return self.builder.load(ptr, name=f"load_{name}")
-        if ctx.PAI(): 
-            return self.visit(ctx.expresion())
-        return ir.Constant(self.int_type, 0)
+    # --- OPERACIONES ARITMÉTICAS ---
+    def visitTermino(self, ctx):
+        """Maneja *, / y el residuo %"""
+        res = self.visit(ctx.factor(0))
+        for i in range(1, len(ctx.factor())):
+            op = ctx.getChild(2*i-1).getText()
+            val = self.visit(ctx.factor(i))
+            
+            if op == '*':
+                res = self.builder.mul(res, val)
+            elif op == '/':
+                res = self.builder.sdiv(res, val)
+            elif op == '%':
+                # CORRECCIÓN: srem para obtener el residuo correcto
+                res = self.builder.srem(res, val)
+        return res
+
+    def visitSuma(self, ctx):
+        """Maneja + y -"""
+        res = self.visit(ctx.termino(0))
+        for i in range(1, len(ctx.termino())):
+            op = ctx.getChild(2*i-1).getText()
+            val = self.visit(ctx.termino(i))
+            if op == '+': 
+                res = self.builder.add(res, val)
+            else: 
+                res = self.builder.sub(res, val)
+        return res
 
     # --- CONTROL DE FLUJO ---
     def visitExpresionSi(self, ctx):
@@ -121,54 +139,46 @@ class IRGenerator(gramatica_finalVisitor):
         inc_b = self.func.append_basic_block(f"f_inc_{u_id}")
         end_b = self.func.append_basic_block(f"f_end_{u_id}")
 
-        # 1. Inicialización (i = 0)
+        # Inicialización
         self.visit(ctx.getChild(2))
         self.builder.branch(cond_b)
 
-        # 2. Condición (i < 5)
+        # Condición
         self.builder.position_at_start(cond_b)
         cond_val = self.visit(ctx.expresion())
         self.builder.cbranch(cond_val, body_b, end_b)
 
-        # 3. Cuerpo del ciclo
+        # Cuerpo
         self.builder.position_at_start(body_b)
         self.visit(ctx.bloque())
         if not self.builder.block.is_terminated:
             self.builder.branch(inc_b)
 
-        # 4. Incremento (i = i + 1)
+        # Incremento
         self.builder.position_at_start(inc_b)
-        # Seleccionamos la asignación correcta para el incremento según la gramática
         asignaciones = ctx.asignacion()
         idx_inc = 1 if len(asignaciones) > 1 else 0
         self.visit(asignaciones[idx_inc])
-        
-        # SALTO OBLIGATORIO DE VUELTA A LA CONDICIÓN
         self.builder.branch(cond_b)
 
         self.builder.position_at_start(end_b)
 
-    # --- OPERACIONES ---
-    def visitSuma(self, ctx):
-        res = self.visit(ctx.termino(0))
-        for i in range(1, len(ctx.termino())):
-            op = ctx.getChild(2*i-1).getText()
-            val = self.visit(ctx.termino(i))
-            if op == '+': res = self.builder.add(res, val)
-            else: res = self.builder.sub(res, val)
-        return res
-
-    def visitComparacion(self, ctx):
-        left = self.visit(ctx.suma(0))
-        if len(ctx.suma()) > 1:
-            op = ctx.getChild(1).getText()
-            right = self.visit(ctx.suma(1))
-            if op == '<=': return self.builder.icmp_signed('<=', left, right)
-            if op == '>=': return self.builder.icmp_signed('>=', left, right)
-            if op == '==': return self.builder.icmp_signed('==', left, right)
-            if op == '<': return self.builder.icmp_signed('<', left, right)
-            if op == '>': return self.builder.icmp_signed('>', left, right)
-        return left
+    # --- FACTORES Y SALIDA ---
+    def visitFactor(self, ctx):
+        if ctx.NUM(): 
+            return ir.Constant(self.int_type, int(ctx.NUM().getText()))
+        if ctx.ID(): 
+            name = ctx.ID().getText()
+            ptr = self.variables.get(name)
+            if ptr:
+                if ctx.CORI(): 
+                    idx = self.visit(ctx.expresion())
+                    p_idx = self.builder.gep(ptr, [ir.Constant(self.int_type, 0), idx])
+                    return self.builder.load(p_idx, name=f"arr_load_{name}")
+                return self.builder.load(ptr, name=f"load_{name}")
+        if ctx.PAI(): 
+            return self.visit(ctx.expresion())
+        return ir.Constant(self.int_type, 0)
 
     def visitPrintt(self, ctx):
         val = self.visit(ctx.expresion())
@@ -180,3 +190,11 @@ class IRGenerator(gramatica_finalVisitor):
         global_fmt.initializer = c_fmt
         fmt_ptr = self.builder.bitcast(global_fmt, self.char_ptr)
         self.builder.call(self.printf, [fmt_ptr, val])
+
+    def visitComparacion(self, ctx):
+        left = self.visit(ctx.suma(0))
+        if len(ctx.suma()) > 1:
+            op = ctx.getChild(1).getText()
+            right = self.visit(ctx.suma(1))
+            return self.builder.icmp_signed(op, left, right)
+        return left
