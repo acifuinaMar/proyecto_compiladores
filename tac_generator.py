@@ -6,6 +6,7 @@ class TACGenerator(gramatica_finalVisitor):
         self.temp_count = 0
         self.label_count = 0
         self.loop_stack = []
+        self.current_function = None
     
     def new_temp(self):
         self.temp_count += 1
@@ -121,8 +122,17 @@ class TACGenerator(gramatica_finalVisitor):
         return nombre
 
     def visitAsignacion(self, ctx):
+        # nums[i] = valor
+        if ctx.CORI():
+            nombre = ctx.ID().getText()
+            indice = self.visit(ctx.expresion(0))
+            valor = self.visit(ctx.expresion(1))
+            self.add(f"{nombre}[{indice}] = {valor}")
+            return valor
+
+        # normal
         nombre = ctx.ID().getText()
-        valor = self.visit(ctx.expresion())
+        valor = self.visit(ctx.expresion(0))
         self.add(f"{nombre} = {valor}")
         return valor
 
@@ -133,22 +143,22 @@ class TACGenerator(gramatica_finalVisitor):
     def visitExpresionSi(self, ctx):
         cond = self.visit(ctx.expresion())
 
-        L_true = self.new_label()
-        L_end = self.new_label()
+        ltrue = self.new_label()
+        lfalse = self.new_label()
+        lend = self.new_label()
 
-        self.add(f"  if {cond} goto {L_true}")
+        self.add(f"  if {cond} goto {ltrue}")
+        self.add(f"  goto {lfalse}")
 
-        # else
+        self.add(f"{ltrue}:")
+        self.visit(ctx.bloque(0))
+        self.add(f"  goto {lend}")
+
+        self.add(f"{lfalse}:")
         if ctx.SINO():
             self.visit(ctx.bloque(1))
 
-        self.add(f"  goto {L_end}")
-
-        # true
-        self.add(f"{L_true}:")
-        self.visit(ctx.bloque(0))
-
-        self.add(f"{L_end}:")
+        self.add(f"{lend}:")
 
     def visitCicloWhile(self, ctx):
         L_start = self.new_label()
@@ -209,4 +219,14 @@ class TACGenerator(gramatica_finalVisitor):
             self.add(f"  goto {L_start}")
 
     def visitFuncion(self, ctx):
-        return None
+        nombre = ctx.ID().getText()
+        self.current_function = nombre
+        self.add(f"\nfunc {nombre}:")
+        self.visit(ctx.bloque())
+        self.add(f"endfunc {nombre}\n")
+        self.current_function = None
+
+    def visitReturnStmt(self, ctx):
+        valor = self.visit(ctx.expresion()) if ctx.expresion() else ""
+        self.add(f"  return {valor}")
+        return valor

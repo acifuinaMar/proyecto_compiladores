@@ -48,6 +48,10 @@ declaracion
     | TIPO CORI CORD ID ASIG arrayLiteral FINAL
     ;
 
+accesoArray
+    : ID CORI expresion CORD
+    ;
+    
 arrayLiteral
     : CORI (expresion (',' expresion)*)? CORD
     ;
@@ -66,6 +70,7 @@ sentencia
 
 asignacion
     : ID ASIG expresion
+    | ID CORI expresion CORD ASIG expresion
     ;
 
 expresionSi

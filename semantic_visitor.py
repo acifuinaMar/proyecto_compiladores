@@ -77,19 +77,21 @@ class SemanticVisitor(gramatica_finalVisitor):
         return tipo
 
     def visitAsignacion(self, ctx):
+        # arreglo[index] = valor
+        if ctx.CORI():
+            nombre = ctx.ID().getText()
+            tipo = self.get_tipo_var(nombre)
+            if not tipo:
+                self.registrar_error(ctx, f"Arreglo '{nombre}' no declarado")
+                return None
+            return tipo
+        # normal
         nombre = ctx.ID().getText()
         tipo_declarado = self.get_tipo_var(nombre)
-        
         if not tipo_declarado:
             self.registrar_error(ctx, f"Variable '{nombre}' no ha sido declarada")
             return None
-
-        tipo_valor = self.visit(ctx.expresion())
-        
-        if tipo_valor and tipo_declarado != tipo_valor:
-            if not (tipo_declarado == "float" and tipo_valor == "int"):
-                self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo_declarado} y recibe {tipo_valor}")
-        
+        tipo_valor = self.visit(ctx.expresion(0))
         return tipo_declarado
 
     def visitExpresionSi(self, ctx):

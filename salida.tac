@@ -1,21 +1,9 @@
 # Código TAC generado
-i = 0
-m = 0
-i = 1
-L1:
-  t1 = i <= 10
-  if t1 goto L2
-  goto L3
-L2:
-  t2 = i % 2
-m = t2
-  t3 = m == 0
-  if t3 goto L4
-  goto L5
-L4:
-  print i
-L5:
-  t4 = i + 1
-i = t4
-  goto L1
-L3:
+nums = [1, 2, 3]
+nums[1] = 99
+  t1 = nums[0]
+  print t1
+  t2 = nums[1]
+  print t2
+  t3 = nums[2]
+  print t3

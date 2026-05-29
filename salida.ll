@@ -7,35 +7,30 @@ declare i32 @"printf"(i8* %".1", ...)
 define i32 @"main"()
 {
 entry:
-  %"i" = alloca i32
-  %"m" = alloca i32
-  store i32 1, i32* %"i"
-  br label %"f_cond_138017060303856"
-f_cond_138017060303856:
-  %"load_i" = load i32, i32* %"i"
-  %".4" = icmp sle i32 %"load_i", 10
-  br i1 %".4", label %"f_body_138017060303856", label %"f_end_138017060303856"
-f_body_138017060303856:
-  %"load_i.1" = load i32, i32* %"i"
-  %".6" = srem i32 %"load_i.1", 2
-  store i32 %".6", i32* %"m"
-  %"load_m" = load i32, i32* %"m"
-  %".8" = icmp eq i32 %"load_m", 0
-  br i1 %".8", label %"f_body_138017060303856.if", label %"f_body_138017060303856.endif"
-f_inc_138017060303856:
-  %"load_i.3" = load i32, i32* %"i"
-  %".14" = add i32 %"load_i.3", 1
-  store i32 %".14", i32* %"i"
-  br label %"f_cond_138017060303856"
-f_end_138017060303856:
+  %"nums" = alloca [3 x i32]
+  %".2" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 0
+  store i32 1, i32* %".2"
+  %".4" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+  store i32 2, i32* %".4"
+  %".6" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 2
+  store i32 3, i32* %".6"
+  %".8" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+  store i32 99, i32* %".8"
+  %".10" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 0
+  %"arr_load_nums" = load i32, i32* %".10"
+  %".11" = bitcast [4 x i8]* @"fstr_137502800034432" to i8*
+  %".12" = call i32 (i8*, ...) @"printf"(i8* %".11", i32 %"arr_load_nums")
+  %".13" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+  %"arr_load_nums.1" = load i32, i32* %".13"
+  %".14" = bitcast [4 x i8]* @"fstr_137502798496160" to i8*
+  %".15" = call i32 (i8*, ...) @"printf"(i8* %".14", i32 %"arr_load_nums.1")
+  %".16" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 2
+  %"arr_load_nums.2" = load i32, i32* %".16"
+  %".17" = bitcast [4 x i8]* @"fstr_137502798497616" to i8*
+  %".18" = call i32 (i8*, ...) @"printf"(i8* %".17", i32 %"arr_load_nums.2")
   ret i32 0
-f_body_138017060303856.if:
-  %"load_i.2" = load i32, i32* %"i"
-  %".10" = bitcast [4 x i8]* @"fstr_138017060298480" to i8*
-  %".11" = call i32 (i8*, ...) @"printf"(i8* %".10", i32 %"load_i.2")
-  br label %"f_body_138017060303856.endif"
-f_body_138017060303856.endif:
-  br label %"f_inc_138017060303856"
 }
 
-@"fstr_138017060298480" = internal constant [4 x i8] c"%d\0a\00"
+@"fstr_137502800034432" = internal constant [4 x i8] c"%d\0a\00"
+@"fstr_137502798496160" = internal constant [4 x i8] c"%d\0a\00"
+@"fstr_137502798497616" = internal constant [4 x i8] c"%d\0a\00"

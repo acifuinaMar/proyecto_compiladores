@@ -68,8 +68,18 @@ class Visitor(gramatica_finalVisitor):
         return None
 
     def visitAsignacion(self, ctx):
+        # nums[i] = valor
+        if ctx.CORI():
+            nombre = ctx.ID().getText()
+            arreglo = self.get_var(nombre)
+            indice = self.visit(ctx.expresion(0))
+            valor = self.visit(ctx.expresion(1))
+            arreglo[indice] = valor
+            return valor
+        # normal
         nombre = ctx.ID().getText()
-        valor = self.visit(ctx.expresion())
+        valor = self.visit(ctx.expresion(0))
+
         self.set_var(nombre, valor)
         return valor
 

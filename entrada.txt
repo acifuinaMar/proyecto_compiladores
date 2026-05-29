@@ -1,6 +1,11 @@
 program {
-    int x = 10;
-    int y = 3;
-    int z = x % y;
-    print(z);
+
+    int[] nums = [1,2,3];
+
+    nums[1] = 99;
+
+    print(nums[0]);
+    print(nums[1]);
+    print(nums[2]);
+
 }

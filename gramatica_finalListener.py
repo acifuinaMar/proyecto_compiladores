@@ -80,6 +80,15 @@ class gramatica_finalListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by gramatica_finalParser#accesoArray.
+    def enterAccesoArray(self, ctx:gramatica_finalParser.AccesoArrayContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#accesoArray.
+    def exitAccesoArray(self, ctx:gramatica_finalParser.AccesoArrayContext):
+        pass
+
+
     # Enter a parse tree produced by gramatica_finalParser#arrayLiteral.
     def enterArrayLiteral(self, ctx:gramatica_finalParser.ArrayLiteralContext):
         pass

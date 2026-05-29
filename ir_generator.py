@@ -68,10 +68,27 @@ class IRGenerator(gramatica_finalVisitor):
 
     def visitAsignacion(self, ctx):
         name = ctx.ID().getText()
-        val = self.visit(ctx.expresion())
+
+        # nums[i] = valor
+        if ctx.CORI():
+            ptr = self.variables[name]
+            indice = self.visit(ctx.expresion(0))
+            valor = self.visit(ctx.expresion(1))
+            p_idx = self.builder.gep(
+                ptr,
+                [
+                    ir.Constant(self.int_type, 0),
+                    indice
+                ]
+            )
+            self.builder.store(valor, p_idx)
+            return valor
+
+        # normal
+        valor = self.visit(ctx.expresion(0))
         if name in self.variables:
-            self.builder.store(val, self.variables[name])
-        return val
+            self.builder.store(valor, self.variables[name])
+        return valor
 
     # --- OPERACIONES ARITMÉTICAS ---
     def visitTermino(self, ctx):
@@ -165,19 +182,47 @@ class IRGenerator(gramatica_finalVisitor):
 
     # --- FACTORES Y SALIDA ---
     def visitFactor(self, ctx):
-        if ctx.NUM(): 
-            return ir.Constant(self.int_type, int(ctx.NUM().getText()))
-        if ctx.ID(): 
+        if ctx.NUM():
+            return ir.Constant(
+                self.int_type,
+                int(ctx.NUM().getText())
+            )
+
+        # acceso array nums[i]
+        if ctx.ID() and ctx.expresion():
             name = ctx.ID().getText()
             ptr = self.variables.get(name)
+
             if ptr:
-                if ctx.CORI(): 
-                    idx = self.visit(ctx.expresion())
-                    p_idx = self.builder.gep(ptr, [ir.Constant(self.int_type, 0), idx])
-                    return self.builder.load(p_idx, name=f"arr_load_{name}")
-                return self.builder.load(ptr, name=f"load_{name}")
-        if ctx.PAI(): 
+                idx = self.visit(ctx.expresion())
+
+                p_idx = self.builder.gep(
+                    ptr,
+                    [
+                        ir.Constant(self.int_type, 0),
+                        idx
+                    ]
+                )
+
+                return self.builder.load(
+                    p_idx,
+                    name=f"arr_load_{name}"
+                )
+
+        # variable normal
+        if ctx.ID():
+            name = ctx.ID().getText()
+            ptr = self.variables.get(name)
+
+            if ptr:
+                return self.builder.load(
+                    ptr,
+                    name=f"load_{name}"
+                )
+
+        if ctx.PAI():
             return self.visit(ctx.expresion())
+
         return ir.Constant(self.int_type, 0)
 
     def visitPrintt(self, ctx):
@@ -198,3 +243,16 @@ class IRGenerator(gramatica_finalVisitor):
             right = self.visit(ctx.suma(1))
             return self.builder.icmp_signed(op, left, right)
         return left
+    
+    def visitAccesoArray(self, ctx):
+        nombre = ctx.ID().getText()
+        ptr = self.variables[nombre]
+        indice = self.visit(ctx.expresion())
+        p_idx = self.builder.gep(
+            ptr,
+            [
+                ir.Constant(self.int_type, 0),
+                indice
+            ]
+        )
+        return self.builder.load(p_idx, name=f"arr_load_{nombre}")

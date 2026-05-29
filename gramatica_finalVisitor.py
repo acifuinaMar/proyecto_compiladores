@@ -49,6 +49,11 @@ class gramatica_finalVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramatica_finalParser#accesoArray.
+    def visitAccesoArray(self, ctx:gramatica_finalParser.AccesoArrayContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramatica_finalParser#arrayLiteral.
     def visitArrayLiteral(self, ctx:gramatica_finalParser.ArrayLiteralContext):
         return self.visitChildren(ctx)
