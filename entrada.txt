@@ -1,11 +1,9 @@
 program {
 
-    int[] nums = [1,2,3];
+    int abs(int n){
+        return n > 0 ? n : 0 - n;
+    }
 
-    nums[1] = 99;
-
-    print(nums[0]);
-    print(nums[1]);
-    print(nums[2]);
+    print(abs(-7));
 
 }

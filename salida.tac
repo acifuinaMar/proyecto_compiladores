@@ -1,9 +1,19 @@
 # Código TAC generado
-nums = [1, 2, 3]
-nums[1] = 99
-  t1 = nums[0]
-  print t1
-  t2 = nums[1]
-  print t2
-  t3 = nums[2]
-  print t3
+
+func abs:
+  t1 = n > 0
+  if t1 goto L1
+  goto L2
+L1:
+  t2 = n
+  goto L3
+L2:
+  t3 = 0 - n
+  t2 = t3
+L3:
+  return t2
+endfunc abs
+
+  t4 = -7
+  t5 = call abs, t4
+  print t5

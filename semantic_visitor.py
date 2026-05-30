@@ -161,7 +161,18 @@ class SemanticVisitor(gramatica_finalVisitor):
         return None
 
     def visitExpresion(self, ctx):
-        return self.visit(ctx.comparacion())
+        tipo_cond = self.visit(ctx.comparacion())
+        # ternario
+        if ctx.getChildCount() > 1:
+            tipo_true = self.visit(ctx.expresion(0))
+            tipo_false = self.visit(ctx.expresion(1))
+            if tipo_true != tipo_false:
+                self.registrar_error(
+                    ctx,
+                    f"Ternario incompatible: {tipo_true} y {tipo_false}"
+                )
+            return tipo_true
+        return tipo_cond
     
     def visitComparacion(self, ctx):
         # Si hay operadores relacionales, retorna bool
@@ -247,5 +258,8 @@ class SemanticVisitor(gramatica_finalVisitor):
 
         if ctx.NOT():
             return "bool"
+        
+        if ctx.RES():
+            return self.visit(ctx.factor())
 
         return "void"

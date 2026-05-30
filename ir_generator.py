@@ -222,6 +222,10 @@ class IRGenerator(gramatica_finalVisitor):
 
         if ctx.PAI():
             return self.visit(ctx.expresion())
+        
+        if ctx.RES():
+            val = self.visit(ctx.factor())
+            return self.builder.neg(val)
 
         return ir.Constant(self.int_type, 0)
 
@@ -256,3 +260,21 @@ class IRGenerator(gramatica_finalVisitor):
             ]
         )
         return self.builder.load(p_idx, name=f"arr_load_{nombre}")
+    
+    def visitExpresion(self, ctx):
+
+        condicion = self.visit(ctx.comparacion())
+
+        # ternario
+        if ctx.getChildCount() > 1:
+
+            verdadero = self.visit(ctx.expresion(0))
+            falso = self.visit(ctx.expresion(1))
+
+            return self.builder.select(
+                condicion,
+                verdadero,
+                falso
+            )
+
+        return condicion

@@ -103,7 +103,7 @@ bloque
  */
 
 expresion
-    : comparacion
+    : comparacion ('?' expresion ':' expresion)?
     ;
 
 comparacion
@@ -125,7 +125,8 @@ factor
     | ID '[' expresion ']'
     | ID
     | PAI expresion PAD
-    | NOT factor
+    | NOT factor         
+    | RES factor          
     ;
 
 llamadaFuncion

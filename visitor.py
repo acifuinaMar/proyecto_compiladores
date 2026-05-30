@@ -89,7 +89,13 @@ class Visitor(gramatica_finalVisitor):
         return None
 
     def visitExpresion(self, ctx):
-        return self.visit(ctx.comparacion())
+        condicion = self.visit(ctx.comparacion())
+        # ternario
+        if ctx.getChildCount() > 1:
+            verdadero = self.visit(ctx.expresion(0))
+            falso = self.visit(ctx.expresion(1))
+            return verdadero if condicion else falso
+        return condicion
 
     def visitSuma(self, ctx):
         resultado = self.visit(ctx.termino(0))
@@ -175,6 +181,9 @@ class Visitor(gramatica_finalVisitor):
 
         if ctx.PAI():
             return self.visit(ctx.expresion())
+        
+        if ctx.RES():
+            return -self.visit(ctx.factor())
 
         return 0
 

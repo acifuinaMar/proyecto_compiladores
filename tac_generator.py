@@ -52,9 +52,35 @@ class TACGenerator(gramatica_finalVisitor):
             for s in ctx.sentencia():
                 self.visit(s)
 
-    # EXPRESIONES: Corregido para pasar por 'comparacion'
     def visitExpresion(self, ctx):
-        return self.visit(ctx.comparacion())
+        condicion = self.visit(ctx.comparacion())
+        # ternario
+        if ctx.getChildCount() > 1:
+            verdadero = ctx.expresion(0)
+            falso = ctx.expresion(1)
+
+            temp = self.new_temp()
+
+            l_true = self.new_label()
+            l_false = self.new_label()
+            l_end = self.new_label()
+
+            self.add(f"  if {condicion} goto {l_true}")
+            self.add(f"  goto {l_false}")
+
+            self.add(f"{l_true}:")
+            val_true = self.visit(verdadero)
+            self.add(f"  {temp} = {val_true}")
+            self.add(f"  goto {l_end}")
+
+            self.add(f"{l_false}:")
+            val_false = self.visit(falso)
+            self.add(f"  {temp} = {val_false}")
+
+            self.add(f"{l_end}:")
+            return temp
+
+        return condicion
 
     def visitComparacion(self, ctx):
         resultado = self.visit(ctx.suma(0))
@@ -87,6 +113,13 @@ class TACGenerator(gramatica_finalVisitor):
         return resultado
 
     def visitFactor(self, ctx):
+        if ctx.RES():
+            val = self.visit(ctx.getChild(1))
+
+            temp = self.new_temp()
+            self.add(f"  {temp} = -{val}")
+            return temp
+        
         if ctx.NUM():
             return ctx.NUM().getText()
 
