@@ -212,26 +212,6 @@ class Visitor(gramatica_finalVisitor):
                 continue
         return None
     
-    def visitCicloFor(self, ctx):
-        # inicialización
-        if ctx.declaracion():
-            self.visit(ctx.declaracion())
-        else:
-            self.visit(ctx.asignacion(0))
-
-        while self.visit(ctx.expresion()):
-            try:
-                self.visit(ctx.bloque())
-            except BreakException:
-                break
-            except ContinueException:
-                pass
-
-            # actualización
-            self.visit(ctx.asignacion()[-1])
-
-        return None
-    
     def visitExpresionSi(self, ctx):
         condicion = self.visit(ctx.expresion())
 
@@ -262,6 +242,27 @@ class Visitor(gramatica_finalVisitor):
 
         return None
     
+    def visitSwitchStmt(self, ctx):
+        valor_switch = self.visit(ctx.expresion())
+        ejecutado = False
+
+        for case_ctx in ctx.caseStmt():
+            valor_case = int(case_ctx.NUM().getText())
+            if valor_switch == valor_case:
+                ejecutado = True
+                try:
+                    for s in case_ctx.sentencia():
+                        self.visit(s)
+                except BreakException:
+                    pass
+                return None
+
+        # default
+        if not ejecutado and ctx.defaultStmt():
+            for s in ctx.defaultStmt().sentencia():
+                self.visit(s)
+        return None
+        
     def visitFuncion(self, ctx):
         nombre = ctx.ID().getText()
         self.funciones[nombre] = ctx

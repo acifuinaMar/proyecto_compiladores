@@ -133,6 +133,29 @@ class SemanticVisitor(gramatica_finalVisitor):
         self.pop_scope()
         self.en_ciclo -= 1
         return None
+    
+    def visitSwitchStmt(self, ctx):
+        # validar expresión de control
+        self.visit(ctx.expresion())
+
+        self.en_ciclo += 1
+
+        self.push_scope()
+
+        for case_ctx in ctx.caseStmt():
+            for s in case_ctx.sentencia():
+                self.visit(s)
+
+        if ctx.defaultStmt():
+            for s in ctx.defaultStmt().sentencia():
+                self.visit(s)
+
+        self.pop_scope()
+
+        self.en_ciclo -= 1
+
+        return None
+    
     def visitBreakStmt(self, ctx):
         if self.en_ciclo == 0:
             self.registrar_error(ctx, "break fuera de un ciclo")

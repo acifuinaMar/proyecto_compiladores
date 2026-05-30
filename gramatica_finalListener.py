@@ -143,6 +143,33 @@ class gramatica_finalListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by gramatica_finalParser#switchStmt.
+    def enterSwitchStmt(self, ctx:gramatica_finalParser.SwitchStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#switchStmt.
+    def exitSwitchStmt(self, ctx:gramatica_finalParser.SwitchStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#caseStmt.
+    def enterCaseStmt(self, ctx:gramatica_finalParser.CaseStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#caseStmt.
+    def exitCaseStmt(self, ctx:gramatica_finalParser.CaseStmtContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#defaultStmt.
+    def enterDefaultStmt(self, ctx:gramatica_finalParser.DefaultStmtContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#defaultStmt.
+    def exitDefaultStmt(self, ctx:gramatica_finalParser.DefaultStmtContext):
+        pass
+
+
     # Enter a parse tree produced by gramatica_finalParser#breakStmt.
     def enterBreakStmt(self, ctx:gramatica_finalParser.BreakStmtContext):
         pass

@@ -15,6 +15,7 @@ programa
     | cicloWhile
     | cicloFor 
     | expresionSi
+    | switchStmt
     ;
 
 /**
@@ -63,6 +64,7 @@ sentencia
     | printt
     | cicloWhile
     | cicloFor
+    | switchStmt
     | returnStmt
     | breakStmt
     | continueStmt
@@ -85,6 +87,20 @@ cicloFor
     : FOR PAI (declaracion | asignacion) FINAL expresion FINAL asignacion PAD bloque
     ;
 
+switchStmt
+    : SWITCH PAI expresion PAD LLAVEI
+        caseStmt*
+        defaultStmt?
+      LLAVED
+    ;
+
+caseStmt
+    : CASE NUM ':' sentencia*
+    ;
+
+defaultStmt
+    : DEFAULT ':' sentencia*
+    ;
 // ================= NUEVO
 breakStmt
     : 'break' FINAL
@@ -157,6 +173,9 @@ WHILE   : 'while';
 FOR     : 'for';
 RETURN  : 'return';
 PRINT   : 'print';
+SWITCH  : 'switch';
+CASE    : 'case';
+DEFAULT : 'default';
 
 // Tipos
 TIPO    : 'int' | 'bool' | 'string' | 'float' | 'void';

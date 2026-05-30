@@ -1,19 +1,16 @@
 # Código TAC generado
-
-func abs:
-  t1 = n > 0
-  if t1 goto L1
-  goto L2
-L1:
-  t2 = n
-  goto L3
+x = 2
+  t1 = x == 1
+  if t1 goto L2
+  t2 = x == 2
+  if t2 goto L3
+  goto L4
 L2:
-  t3 = 0 - n
-  t2 = t3
+  print 1
+  goto L1
 L3:
-  return t2
-endfunc abs
-
-  t4 = -7
-  t5 = call abs, t4
-  print t5
+  print 2
+  goto L1
+L4:
+  print 999
+L1:

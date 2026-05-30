@@ -6,6 +6,7 @@ class TACGenerator(gramatica_finalVisitor):
         self.temp_count = 0
         self.label_count = 0
         self.loop_stack = []
+        self.switch_stack = []
         self.current_function = None
     
     def new_temp(self):
@@ -241,7 +242,43 @@ class TACGenerator(gramatica_finalVisitor):
         self.add(f"{L_end}:")
         self.loop_stack.pop()
 
+    def visitSwitchStmt(self, ctx):
+        valor = self.visit(ctx.expresion())
+        L_end = self.new_label()
+        self.switch_stack.append(L_end)
+        case_labels = []
+
+        for _ in ctx.caseStmt():
+            case_labels.append(self.new_label())
+        default_label = self.new_label() if ctx.defaultStmt() else L_end
+
+        for i, case_ctx in enumerate(ctx.caseStmt()):
+
+            valor_case = case_ctx.NUM().getText()
+
+            temp = self.new_temp()
+            self.add(f"  {temp} = {valor} == {valor_case}")
+            self.add(f"  if {temp} goto {case_labels[i]}")
+
+        self.add(f"  goto {default_label}")
+
+        for i, case_ctx in enumerate(ctx.caseStmt()):
+            self.add(f"{case_labels[i]}:")
+            for s in case_ctx.sentencia():
+                self.visit(s)
+        # default
+        if ctx.defaultStmt():
+            self.add(f"{default_label}:")
+            for s in ctx.defaultStmt().sentencia():
+                self.visit(s)
+        self.add(f"{L_end}:")
+        self.switch_stack.pop()
+
     def visitBreakStmt(self, ctx):
+        if self.switch_stack:
+            self.add(f"  goto {self.switch_stack[-1]}")
+            return
+
         if self.loop_stack:
             _, L_end = self.loop_stack[-1]
             self.add(f"  goto {L_end}")

@@ -84,6 +84,21 @@ class gramatica_finalVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramatica_finalParser#switchStmt.
+    def visitSwitchStmt(self, ctx:gramatica_finalParser.SwitchStmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#caseStmt.
+    def visitCaseStmt(self, ctx:gramatica_finalParser.CaseStmtContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#defaultStmt.
+    def visitDefaultStmt(self, ctx:gramatica_finalParser.DefaultStmtContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramatica_finalParser#breakStmt.
     def visitBreakStmt(self, ctx:gramatica_finalParser.BreakStmtContext):
         return self.visitChildren(ctx)
