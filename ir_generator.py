@@ -220,7 +220,13 @@ class IRGenerator(gramatica_finalVisitor):
                     name=f"load_{name}"
                 )
 
-        if ctx.PAI():
+        if ctx.TIPO():
+            tipo_destino = ctx.TIPO().getText()
+            valor = self.visit(ctx.factor())
+
+            return valor
+        
+        if ctx.PAI() and ctx.expresion():
             return self.visit(ctx.expresion())
         
         if ctx.RES():

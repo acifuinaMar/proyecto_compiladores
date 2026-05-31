@@ -278,6 +278,13 @@ class SemanticVisitor(gramatica_finalVisitor):
 
         if ctx.expresion():
             return self.visit(ctx.expresion())
+        
+        if ctx.TIPO():
+            tipo_destino = ctx.TIPO().getText()
+
+            self.visit(ctx.factor())
+
+            return tipo_destino
 
         if ctx.NOT():
             return "bool"

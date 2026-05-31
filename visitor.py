@@ -179,6 +179,22 @@ class Visitor(gramatica_finalVisitor):
         if ctx.ID():
             return self.get_var(ctx.ID().getText())
 
+        if ctx.TIPO():
+            tipo_destino = ctx.TIPO().getText()
+
+            valor = self.visit(ctx.factor())
+
+            if tipo_destino == "int":
+                return int(valor)
+
+            elif tipo_destino == "float":
+                return float(valor)
+
+            elif tipo_destino == "string":
+                return str(valor)
+
+            return valor
+        
         if ctx.PAI():
             return self.visit(ctx.expresion())
         

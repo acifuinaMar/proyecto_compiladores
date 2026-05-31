@@ -1,20 +1,7 @@
 program {
 
-    int x = 2;
+    string texto = "hola";
 
-    switch(x){
-
-        case 1:
-            print(1);
-            break;
-
-        case 2:
-            print(2);
-            break;
-
-        default:
-            print(999);
-
-    }
+    int x = (int)texto;
 
 }

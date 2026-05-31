@@ -135,14 +135,15 @@ termino
     ;
 
 factor
-    : NUM
+    : RES factor
+    | NUM
     | STRING
     | llamadaFuncion
     | ID '[' expresion ']'
     | ID
+    | PAI TIPO PAD factor
     | PAI expresion PAD
-    | NOT factor         
-    | RES factor          
+    | NOT factor
     ;
 
 llamadaFuncion

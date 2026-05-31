@@ -137,6 +137,14 @@ class TACGenerator(gramatica_finalVisitor):
 
         if ctx.ID():
             return ctx.ID().getText()
+        
+        if ctx.TIPO():
+            tipo_destino = ctx.TIPO().getText()
+            valor = self.visit(ctx.factor())
+            temp = self.new_temp()
+            self.add(f"  {temp} = cast_{tipo_destino} {valor}")
+
+            return temp
 
         if ctx.PAI():
             return self.visit(ctx.expresion())
