@@ -15,6 +15,7 @@ class Visitor(gramatica_finalVisitor):
         self.scopes = [{}]
         self.tabla_tipos = [{}]
         self.funciones = {}
+        self.structs = {}
 
     def push_scope(self):
         self.scopes.append({})
@@ -49,7 +50,18 @@ class Visitor(gramatica_finalVisitor):
         return None
 
     def visitDeclaracion(self, ctx):
-        nombre = ctx.ID().getText()
+        if len(ctx.ID()) == 2:
+
+            tipo_struct = ctx.ID(0).getText()
+            nombre_var = ctx.ID(1).getText()
+
+            if tipo_struct in self.structs:
+
+                self.scopes[-1][nombre_var] = self.structs[tipo_struct].copy()
+                print(self.scopes[-1])
+                return None
+            
+        nombre = ctx.ID()[0].getText()
 
         if ctx.arrayLiteral():
             valores = []
@@ -68,16 +80,30 @@ class Visitor(gramatica_finalVisitor):
         return None
 
     def visitAsignacion(self, ctx):
+        # p.x = valor
+        if ctx.getChildCount() >= 5 and ctx.getChild(1).getText() == ".":
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+            valor = self.visit(ctx.expresion(0))
+            instancia = self.get_var(nombre_struct)
+            print("STRUCT:", nombre_struct)
+            print("CAMPO:", campo)
+            print("VALOR:", valor)
+            print("INSTANCIA ANTES:", instancia)
+            instancia[campo] = valor
+            print("INSTANCIA DESPUES:", instancia)
+            return valor
+        
         # nums[i] = valor
         if ctx.CORI():
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             arreglo = self.get_var(nombre)
             indice = self.visit(ctx.expresion(0))
             valor = self.visit(ctx.expresion(1))
             arreglo[indice] = valor
             return valor
         # normal
-        nombre = ctx.ID().getText()
+        nombre = ctx.ID(0).getText()
         valor = self.visit(ctx.expresion(0))
 
         self.set_var(nombre, valor)
@@ -166,7 +192,7 @@ class Visitor(gramatica_finalVisitor):
             return self.visit(ctx.llamadaFuncion())
 
         if ctx.getChildCount() == 4 and ctx.getChild(1).getText() == '[':
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             index = self.visit(ctx.expresion())
 
             arr = self.get_var(nombre)
@@ -175,9 +201,21 @@ class Visitor(gramatica_finalVisitor):
                 raise Exception(f"'{nombre}' no es un arreglo")
 
             return arr[index]
+        
+        # acceso struct p.x
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
 
-        if ctx.ID():
-            return self.get_var(ctx.ID().getText())
+            instancia = self.get_var(nombre_struct)
+
+            if not isinstance(instancia, dict):
+                raise Exception(f"'{nombre_struct}' no es un struct")
+
+            return instancia[campo]
+
+        if len(ctx.ID()) == 1:
+            return self.get_var(ctx.ID(0).getText())
 
         if ctx.TIPO():
             tipo_destino = ctx.TIPO().getText()
@@ -321,3 +359,15 @@ class Visitor(gramatica_finalVisitor):
         valor = self.visit(ctx.expresion()) if ctx.expresion() else None
         print("RETURN:", valor)
         raise ReturnException(valor)
+    
+    def visitStructDecl(self, ctx):
+        nombre_struct = ctx.ID().getText()
+        campos = {}
+
+        for campo in ctx.campoStruct():
+            nombre_campo = campo.ID().getText()
+            campos[nombre_campo] = 0
+        self.structs[nombre_struct] = campos
+        print("STRUCT REGISTRADO:", self.structs)
+
+        return None

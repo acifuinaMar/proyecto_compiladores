@@ -1,7 +1,21 @@
 program {
 
-    string texto = "hola";
+    struct Punto {
+        int x;
+        int y;
+    }
 
-    int x = (int)texto;
+    Punto p;
+
+    p.x = 10;
+    p.y = 20;
+
+    int[] nums = [1, 2, 3];
+
+    nums[0] = p.x;
+    nums[1] = p.y;
+
+    print(nums[0]);
+    print(nums[1]);
 
 }

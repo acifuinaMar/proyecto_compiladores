@@ -34,6 +34,21 @@ class gramatica_finalVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramatica_finalParser#structDecl.
+    def visitStructDecl(self, ctx:gramatica_finalParser.StructDeclContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#campoStruct.
+    def visitCampoStruct(self, ctx:gramatica_finalParser.CampoStructContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramatica_finalParser#accesoCampo.
+    def visitAccesoCampo(self, ctx:gramatica_finalParser.AccesoCampoContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramatica_finalParser#parametros.
     def visitParametros(self, ctx:gramatica_finalParser.ParametrosContext):
         return self.visitChildren(ctx)

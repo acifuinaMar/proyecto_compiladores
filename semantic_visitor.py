@@ -55,42 +55,90 @@ class SemanticVisitor(gramatica_finalVisitor):
         return None
 
     def visitDeclaracion(self, ctx):
-        nombre = ctx.ID().getText()
+        ids = ctx.ID()
+
+        # Declaración de struct:s
+        if len(ids) == 2:
+
+            tipo = ids[0].getText()
+            nombre = ids[1].getText()
+
+            if nombre in self.tabla_tipos[-1]:
+                self.registrar_error(
+                    ctx,
+                    f"Variable '{nombre}' ya declarada en este ámbito"
+                )
+            else:
+                self.tabla_tipos[-1][nombre] = tipo
+
+            return tipo
+
+        # Declaraciones normales
+        nombre = ids[0].getText()
         tipo = ctx.TIPO().getText()
 
         # detectar array
         if ctx.CORI():
             tipo = tipo + "[]"
 
-        if nombre in self.tabla_tipos[-1]: 
-            self.registrar_error(ctx, f"Variable '{nombre}' ya declarada en este ámbito")
+        if nombre in self.tabla_tipos[-1]:
+            self.registrar_error(
+                ctx,
+                f"Variable '{nombre}' ya declarada en este ámbito"
+            )
         else:
             self.tabla_tipos[-1][nombre] = tipo
 
         # validar asignación
         if ctx.expresion():
             tipo_exp = self.visit(ctx.expresion())
+
             if tipo and tipo_exp and tipo != tipo_exp:
                 if not (tipo == "float" and tipo_exp == "int"):
-                    self.registrar_error(ctx, f"Incompatibilidad: '{nombre}' es {tipo} y recibe {tipo_exp}")
+                    self.registrar_error(
+                        ctx,
+                        f"Incompatibilidad: '{nombre}' es {tipo} y recibe {tipo_exp}"
+                    )
 
         return tipo
 
     def visitAsignacion(self, ctx):
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+            tipo_struct = self.get_tipo_var(nombre_struct)
+
+            if not tipo_struct:
+                self.registrar_error(
+                    ctx,
+                    f"Variable '{nombre_struct}' no ha sido declarada"
+                )
+                return None
+            return "int"   # temporal
+
         # arreglo[index] = valor
         if ctx.CORI():
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             tipo = self.get_tipo_var(nombre)
             if not tipo:
-                self.registrar_error(ctx, f"Arreglo '{nombre}' no declarado")
+                self.registrar_error(
+                    ctx,
+                    f"Arreglo '{nombre}' no declarado"
+                )
                 return None
             return tipo
+
         # normal
-        nombre = ctx.ID().getText()
+        nombre = ctx.ID(0).getText()
+
         tipo_declarado = self.get_tipo_var(nombre)
         if not tipo_declarado:
-            self.registrar_error(ctx, f"Variable '{nombre}' no ha sido declarada")
+            self.registrar_error(
+                ctx,
+                f"Variable '{nombre}' no ha sido declarada"
+            )
             return None
+
         tipo_valor = self.visit(ctx.expresion(0))
         return tipo_declarado
 
@@ -248,7 +296,7 @@ class SemanticVisitor(gramatica_finalVisitor):
 
         # acceso array
         if ctx.ID() and ctx.CORI():
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             tipo = self.get_tipo_var(nombre)
 
             if not tipo:
@@ -264,14 +312,21 @@ class SemanticVisitor(gramatica_finalVisitor):
                 self.registrar_error(ctx, f"Índice de arreglo debe ser int")
 
             return tipo.replace("[]", "")
+        #acceso structs
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
 
-        if ctx.ID():
-            nombre = ctx.ID().getText()
-            tipo = self.get_tipo_var(nombre)
-            if not tipo:
-                self.registrar_error(ctx, f"Variable '{nombre}' no está definida")
+            tipo_struct = self.get_tipo_var(nombre_struct)
+
+            if not tipo_struct:
+                self.registrar_error(
+                    ctx,
+                    f"Variable '{nombre_struct}' no está definida"
+                )
                 return "int"
-            return tipo
+
+            return "int"
 
         if ctx.llamadaFuncion():
             return self.visit(ctx.llamadaFuncion())

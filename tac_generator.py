@@ -128,15 +128,24 @@ class TACGenerator(gramatica_finalVisitor):
             return self.visit(ctx.llamadaFuncion())
         
         if ctx.getChildCount() == 4 and ctx.getChild(1).getText() == '[':
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             index = self.visit(ctx.expresion())
 
             temp = self.new_temp()
             self.add(f"  {temp} = {nombre}[{index}]")
             return temp
+        
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+
+            temp = self.new_temp()
+            self.add(f"  {temp} = {nombre_struct}.{campo}")
+
+            return temp
 
         if ctx.ID():
-            return ctx.ID().getText()
+            return ctx.ID(0).getText()
         
         if ctx.TIPO():
             tipo_destino = ctx.TIPO().getText()
@@ -152,7 +161,16 @@ class TACGenerator(gramatica_finalVisitor):
         return "0"
 
     def visitDeclaracion(self, ctx):
-        nombre = ctx.ID().getText()
+        ids = ctx.ID()
+
+        # Punto p;
+        if len(ids) == 2:
+            tipo_struct = ids[0].getText()
+            nombre = ids[1].getText()
+            self.add(f"{nombre} = struct {tipo_struct}")
+            return nombre
+
+        nombre = ids[0].getText()
 
         if ctx.arrayLiteral():
             valores = [self.visit(e) for e in ctx.arrayLiteral().expresion()]
@@ -164,19 +182,27 @@ class TACGenerator(gramatica_finalVisitor):
         return nombre
 
     def visitAsignacion(self, ctx):
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+            valor = self.visit(ctx.expresion(0))
+            self.add(f"{nombre_struct}.{campo} = {valor}")
+            return valor
+        
         # nums[i] = valor
         if ctx.CORI():
-            nombre = ctx.ID().getText()
+            nombre = ctx.ID(0).getText()
             indice = self.visit(ctx.expresion(0))
             valor = self.visit(ctx.expresion(1))
             self.add(f"{nombre}[{indice}] = {valor}")
             return valor
 
         # normal
-        nombre = ctx.ID().getText()
-        valor = self.visit(ctx.expresion(0))
-        self.add(f"{nombre} = {valor}")
-        return valor
+        if len(ctx.ID()) == 1:
+            return ctx.ID(0).getText()
+            valor = self.visit(ctx.expresion(0))
+            self.add(f"{nombre} = {valor}")
+            return valor
 
     def visitPrintt(self, ctx):
         valor = self.visit(ctx.expresion())

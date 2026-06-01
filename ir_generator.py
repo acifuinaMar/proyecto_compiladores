@@ -38,7 +38,10 @@ class IRGenerator(gramatica_finalVisitor):
 
     # --- MANEJO DE VARIABLES Y ARREGLOS ---
     def visitDeclaracion(self, ctx):
-        name = ctx.ID().getText()
+        if len(ctx.ID()) == 2:
+            name = ctx.ID(1).getText()
+        else:
+            name = ctx.ID(0).getText()
         # Si la gramática detecta corchetes [], es un arreglo
         if ctx.CORI():  
             size = 10 
@@ -67,8 +70,15 @@ class IRGenerator(gramatica_finalVisitor):
                 self.builder.store(val, ptr)
 
     def visitAsignacion(self, ctx):
-        name = ctx.ID().getText()
+        name = ctx.ID(0).getText()
 
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+            valor = self.visit(ctx.expresion(0))
+            print(f"LLVM STRUCT ASSIGN: {nombre_struct}.{campo} = {valor}")
+            return valor
+        
         # nums[i] = valor
         if ctx.CORI():
             ptr = self.variables[name]
@@ -189,8 +199,8 @@ class IRGenerator(gramatica_finalVisitor):
             )
 
         # acceso array nums[i]
-        if ctx.ID() and ctx.expresion():
-            name = ctx.ID().getText()
+        if ctx.CORI():
+            name = ctx.ID(0).getText()
             ptr = self.variables.get(name)
 
             if ptr:
@@ -209,9 +219,18 @@ class IRGenerator(gramatica_finalVisitor):
                     name=f"arr_load_{name}"
                 )
 
+        # acceso struct p.x
+        if len(ctx.ID()) == 2:
+            nombre_struct = ctx.ID(0).getText()
+            campo = ctx.ID(1).getText()
+
+            print(f"LLVM STRUCT ACCESS: {nombre_struct}.{campo}")
+
+            return ir.Constant(self.int_type, 0)
+        
         # variable normal
-        if ctx.ID():
-            name = ctx.ID().getText()
+        if len(ctx.ID()) == 1:
+            name = ctx.ID(0).getText()
             ptr = self.variables.get(name)
 
             if ptr:

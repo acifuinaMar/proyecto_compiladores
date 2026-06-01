@@ -11,6 +11,7 @@ root
 programa
     : funcion 
     | declaracion 
+    | structDecl
     | sentenciaGlobal 
     | cicloWhile
     | cicloFor 
@@ -34,6 +35,17 @@ funcion
     : TIPO ID PAI parametros? PAD bloque
     ;
 
+structDecl
+    : 'struct' ID LLAVEI campoStruct* LLAVED
+    ;
+
+campoStruct
+    : TIPO ID FINAL
+    ;
+
+accesoCampo
+    : ID '.' ID
+    ;
 parametros
     : parametro (',' parametro)*
     ;
@@ -47,6 +59,7 @@ declaracion
     : TIPO ID ASIG expresion FINAL 
     | TIPO ID FINAL
     | TIPO CORI CORD ID ASIG arrayLiteral FINAL
+    | ID ID FINAL
     ;
 
 accesoArray
@@ -73,6 +86,7 @@ sentencia
 asignacion
     : ID ASIG expresion
     | ID CORI expresion CORD ASIG expresion
+    | ID '.' ID ASIG expresion
     ;
 
 expresionSi
@@ -140,6 +154,7 @@ factor
     | STRING
     | llamadaFuncion
     | ID '[' expresion ']'
+    | ID '.' ID
     | ID
     | PAI TIPO PAD factor
     | PAI expresion PAD

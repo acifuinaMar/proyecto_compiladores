@@ -53,6 +53,33 @@ class gramatica_finalListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by gramatica_finalParser#structDecl.
+    def enterStructDecl(self, ctx:gramatica_finalParser.StructDeclContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#structDecl.
+    def exitStructDecl(self, ctx:gramatica_finalParser.StructDeclContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#campoStruct.
+    def enterCampoStruct(self, ctx:gramatica_finalParser.CampoStructContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#campoStruct.
+    def exitCampoStruct(self, ctx:gramatica_finalParser.CampoStructContext):
+        pass
+
+
+    # Enter a parse tree produced by gramatica_finalParser#accesoCampo.
+    def enterAccesoCampo(self, ctx:gramatica_finalParser.AccesoCampoContext):
+        pass
+
+    # Exit a parse tree produced by gramatica_finalParser#accesoCampo.
+    def exitAccesoCampo(self, ctx:gramatica_finalParser.AccesoCampoContext):
+        pass
+
+
     # Enter a parse tree produced by gramatica_finalParser#parametros.
     def enterParametros(self, ctx:gramatica_finalParser.ParametrosContext):
         pass
