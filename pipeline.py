@@ -9,6 +9,9 @@ from visitor import Visitor
 from semantic_phase import SemanticPhase
 from ir_generator import IRGenerator 
 from optimizer import Optimizer
+import os
+import shutil
+import subprocess
 
 
 class Pipeline:
@@ -44,6 +47,8 @@ class Pipeline:
 
         if not self._fase_optimizacion_o3():
             return self._resumen()
+        
+        self._fase_binarios()
         
         return self._resumen()
     
@@ -196,6 +201,133 @@ class Pipeline:
             }
             print(f"  Error: {e}")
             return False
+        
+    def _fase_binarios(self):
+        print("\n[FASE 8] Generación de Binarios Nativos")
+        print("-" * 40)
+
+        inicio = time.time()
+
+        for archivo in ["programa_linux", "programa.exe", "programa.obj"]:
+            if os.path.exists(archivo):
+                os.remove(archivo)
+                resultado = {
+                    "exitoso": True,
+                    "tiempo_ms": 0,
+                    "linux": None,
+                    "windows": None,
+                    "errores": []
+                }
+
+        ir_file = "salida.ll"
+
+        if not os.path.exists(ir_file):
+            ir_file = "salida.ll"
+
+        try:
+            # ==========================
+            # BINARIO LINUX
+            # ==========================
+            if shutil.which("clang"):
+                linux_bin = "programa_linux"
+
+                cmd_linux = [
+                    "clang",
+                    ir_file,
+                    "-o",
+                    linux_bin
+                ]
+
+                proc_linux = subprocess.run(
+                    cmd_linux,
+                    capture_output=True,
+                    text=True
+                )
+
+                if proc_linux.returncode == 0:
+                    resultado["linux"] = linux_bin
+                    print(f"  Linux   : Nice :D {linux_bin}")
+                else:
+                    resultado["exitoso"] = False
+                    resultado["errores"].append(proc_linux.stderr)
+                    print("  Linux   : Error :/")
+                    print(proc_linux.stderr)
+            else:
+                resultado["exitoso"] = False
+                resultado["errores"].append("clang no está instalado")
+                print("  Linux   : clang no encontrado")
+
+            # ==========================
+            # BINARIO WINDOWS
+            # ==========================
+            if shutil.which("llc") and shutil.which("x86_64-w64-mingw32-gcc"):
+                obj_file = "programa.obj"
+                exe_file = "programa.exe"
+
+                cmd_obj = [
+                    "llc",
+                    "-mtriple=x86_64-w64-windows-gnu",
+                    "-filetype=obj",
+                    ir_file,
+                    "-o",
+                    obj_file
+                ]
+
+                proc_obj = subprocess.run(
+                    cmd_obj,
+                    capture_output=True,
+                    text=True
+                )
+
+                if proc_obj.returncode != 0:
+                    resultado["exitoso"] = False
+                    resultado["errores"].append(proc_obj.stderr)
+                    print("  Windows : Error generando .obj")
+                    print(proc_obj.stderr)
+                else:
+                    cmd_exe = [
+                        "x86_64-w64-mingw32-gcc",
+                        obj_file,
+                        "-o",
+                        exe_file
+                    ]
+
+                    proc_exe = subprocess.run(
+                        cmd_exe,
+                        capture_output=True,
+                        text=True
+                    )
+
+                    if proc_exe.returncode == 0:
+                        resultado["windows"] = exe_file
+                        print(f"  Windows : Nice :D {exe_file}")
+                        destino_win = "/mnt/c/Users/motit/Desktop/programa_compilador.exe"
+                        try:
+                            shutil.copyfile(exe_file, destino_win)
+                            print(f"  Copiado : {destino_win}")
+                        except Exception as e:
+                            print(f"  Aviso   : no se pudo copiar a Windows: {e}")
+                    else:
+                        resultado["exitoso"] = False
+                        resultado["errores"].append(proc_exe.stderr)
+                        print("  Windows : Error generando .exe")
+                        print(proc_exe.stderr)
+            else:
+                print("  Windows : omitido, falta llc o x86_64-w64-mingw32-gcc")
+
+        except Exception as e:
+            resultado["exitoso"] = False
+            resultado["errores"].append(str(e))
+            print(f"  Error: {e}")
+
+        tiempo = (time.time() - inicio) * 1000
+        resultado["tiempo_ms"] = tiempo
+
+        self.resultados["binarios"] = resultado
+
+        print(f"  Tiempo  : {tiempo:.2f} ms")
+
+        return resultado["exitoso"]
 
     def _resumen(self):
         print("\n" + "="*60)
