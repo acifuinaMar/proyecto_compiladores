@@ -1,5 +1,4 @@
 program {
-
     struct Punto {
         int x;
         int y;
@@ -7,15 +6,57 @@ program {
 
     Punto p;
 
-    p.x = 10;
-    p.y = 20;
+    p.x = 3;
+    p.y = 4;
 
-    int[] nums = [1, 2, 3];
+    int dist = p.x * p.x + p.y * p.y;
 
-    nums[0] = p.x;
-    nums[1] = p.y;
+    string etiqueta = dist > 20 ? "lejos" : "cerca";
 
-    print(nums[0]);
-    print(nums[1]);
+    print(etiqueta);
 
+    int opcion = 2;
+
+    switch(opcion) {
+        case 1:
+            print("opcion uno");
+            break;
+
+        case 2:
+            print("opcion dos");
+            break;
+
+        default:
+            print("otra opcion");
+    }
+
+    int fibonacci(int n) {
+        si (n <= 1) {
+            return n;
+        }
+
+        return fibonacci(n - 1) + fibonacci(n - 2);
+    }
+
+    int[] nums = [5, 8, 13, 21, 34];
+
+    int i = 0;
+    int total = 0;
+
+    while (i < 5) {
+        int r = nums[i] % 2;
+
+        si (r == 0) {
+            total = total + nums[i];
+        }
+
+        i = i + 1;
+
+        si (total > 50) {
+            break;
+        }
+    }
+
+    print(fibonacci(10));
+    print(total);
 }

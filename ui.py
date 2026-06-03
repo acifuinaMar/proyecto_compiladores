@@ -74,6 +74,9 @@ class CompiladorProIDE:
         self.txt_tac = self.create_tab("TAC")
         self.txt_ir = self.create_tab("LLVM IR")
         self.txt_exec = self.create_tab("Ejecución (lli)")
+        self.txt_ir_manual = self.create_tab("IR Manual")
+        self.txt_ir_diff = self.create_tab("Diff IR")
+        self.txt_ir_o3 = self.create_tab("LLVM O3")
         self.txt_errors = self.create_tab("Errores")
 
     def create_tab(self, name):
@@ -86,7 +89,7 @@ class CompiladorProIDE:
 
     def clear_all(self):
         self.tree.delete(*self.tree.get_children())
-        for area in [self.txt_console, self.txt_tac, self.txt_ir, self.txt_exec, self.txt_errors]:
+        for area in [self.txt_console, self.txt_tac, self.txt_ir, self.txt_exec, self.txt_errors, self.txt_ir_manual,self.txt_ir_diff, self.txt_ir_o3,]:
             area.delete('1.0', tk.END)
 
     def update_tab(self, widget, content):
@@ -129,12 +132,37 @@ class CompiladorProIDE:
                     self.update_tab(self.txt_tac, "Error: salida.tac no generado.")
 
                 # Generar LLVM IR
-                ir_gen = IRGenerator()
-                llvm_code = ir_gen.visit(pipeline.ast)
+                with open("salida.ll", "r", encoding="utf-8") as f:
+                    llvm_code = f.read()
+
                 self.update_tab(self.txt_ir, llvm_code)
-                
-                with open("salida.ll", "w", encoding='utf-8') as f_ir:
-                    f_ir.write(llvm_code)
+                # cargar salida.opt.II
+                try:
+                    with open("salida.opt.ll", "r", encoding="utf-8") as f:
+                        self.update_tab(self.txt_ir_o3, f.read())
+                except:
+                    self.update_tab(
+                        self.txt_ir_o3,
+                        "No se generó salida.opt.ll"
+                    )
+                # cargar salida.manual.ll
+                try:
+                    with open("salida.manual.ll", "r", encoding="utf-8") as f:
+                        self.update_tab(self.txt_ir_manual, f.read())
+                except:
+                    self.update_tab(
+                        self.txt_ir_manual,
+                        "No se generó salida.manual.ll"
+                    )
+                # cargar salida.manual.diff
+                try:
+                    with open("salida.manual.diff", "r", encoding="utf-8") as f:
+                        self.update_tab(self.txt_ir_diff, f.read())
+                except:
+                    self.update_tab(
+                        self.txt_ir_diff,
+                        "No se generó salida.manual.diff"
+                    )
 
                 # Ejecutar con lli
                 try:

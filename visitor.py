@@ -58,7 +58,7 @@ class Visitor(gramatica_finalVisitor):
             if tipo_struct in self.structs:
 
                 self.scopes[-1][nombre_var] = self.structs[tipo_struct].copy()
-                print(self.scopes[-1])
+                
                 return None
             
         nombre = ctx.ID()[0].getText()
@@ -85,15 +85,16 @@ class Visitor(gramatica_finalVisitor):
             nombre_struct = ctx.ID(0).getText()
             campo = ctx.ID(1).getText()
             valor = self.visit(ctx.expresion(0))
+
             instancia = self.get_var(nombre_struct)
-            print("STRUCT:", nombre_struct)
-            print("CAMPO:", campo)
-            print("VALOR:", valor)
-            print("INSTANCIA ANTES:", instancia)
+
+            if not isinstance(instancia, dict):
+                raise Exception(f"'{nombre_struct}' no es un struct")
+
             instancia[campo] = valor
-            print("INSTANCIA DESPUES:", instancia)
+
             return valor
-        
+
         # nums[i] = valor
         if ctx.CORI():
             nombre = ctx.ID(0).getText()
@@ -102,6 +103,7 @@ class Visitor(gramatica_finalVisitor):
             valor = self.visit(ctx.expresion(1))
             arreglo[indice] = valor
             return valor
+
         # normal
         nombre = ctx.ID(0).getText()
         valor = self.visit(ctx.expresion(0))
@@ -129,8 +131,6 @@ class Visitor(gramatica_finalVisitor):
         for i in range(1, len(ctx.termino())):
             op = ctx.getChild(2*i - 1).getText()
             derecha = self.visit(ctx.termino(i))
-
-            print("SUMANDO:", resultado, op, derecha)  # debug
 
             if op == "+":
                 resultado = resultado + derecha
@@ -208,7 +208,6 @@ class Visitor(gramatica_finalVisitor):
             campo = ctx.ID(1).getText()
 
             instancia = self.get_var(nombre_struct)
-
             if not isinstance(instancia, dict):
                 raise Exception(f"'{nombre_struct}' no es un struct")
 
@@ -357,7 +356,6 @@ class Visitor(gramatica_finalVisitor):
             
     def visitReturnStmt(self, ctx):
         valor = self.visit(ctx.expresion()) if ctx.expresion() else None
-        print("RETURN:", valor)
         raise ReturnException(valor)
     
     def visitStructDecl(self, ctx):
@@ -368,6 +366,6 @@ class Visitor(gramatica_finalVisitor):
             nombre_campo = campo.ID().getText()
             campos[nombre_campo] = 0
         self.structs[nombre_struct] = campos
-        print("STRUCT REGISTRADO:", self.structs)
+        
 
         return None

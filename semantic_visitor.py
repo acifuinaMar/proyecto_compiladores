@@ -294,7 +294,7 @@ class SemanticVisitor(gramatica_finalVisitor):
         if ctx.STRING():
             return "string"
 
-        # acceso array
+        # acceso array: nums[i]
         if ctx.ID() and ctx.CORI():
             nombre = ctx.ID(0).getText()
             tipo = self.get_tipo_var(nombre)
@@ -308,11 +308,13 @@ class SemanticVisitor(gramatica_finalVisitor):
                 return "int"
 
             tipo_index = self.visit(ctx.expresion())
+
             if tipo_index != "int":
                 self.registrar_error(ctx, f"Índice de arreglo debe ser int")
 
             return tipo.replace("[]", "")
-        #acceso structs
+
+        # acceso struct: p.x
         if len(ctx.ID()) == 2:
             nombre_struct = ctx.ID(0).getText()
             campo = ctx.ID(1).getText()
@@ -328,22 +330,37 @@ class SemanticVisitor(gramatica_finalVisitor):
 
             return "int"
 
+        # variable normal: i, total, opcion, dist...
+        if len(ctx.ID()) == 1:
+            nombre = ctx.ID(0).getText()
+            tipo = self.get_tipo_var(nombre)
+
+            if not tipo:
+                self.registrar_error(
+                    ctx,
+                    f"Variable '{nombre}' no está definida"
+                )
+                return "int"
+
+            return tipo
+
+        # llamada de función
         if ctx.llamadaFuncion():
             return self.visit(ctx.llamadaFuncion())
 
-        if ctx.expresion():
-            return self.visit(ctx.expresion())
-        
+        # casting: (float)x
         if ctx.TIPO():
             tipo_destino = ctx.TIPO().getText()
-
             self.visit(ctx.factor())
-
             return tipo_destino
+
+        # paréntesis: (x + y)
+        if ctx.expresion():
+            return self.visit(ctx.expresion())
 
         if ctx.NOT():
             return "bool"
-        
+
         if ctx.RES():
             return self.visit(ctx.factor())
 

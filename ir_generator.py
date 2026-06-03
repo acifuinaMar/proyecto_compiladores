@@ -76,7 +76,7 @@ class IRGenerator(gramatica_finalVisitor):
             nombre_struct = ctx.ID(0).getText()
             campo = ctx.ID(1).getText()
             valor = self.visit(ctx.expresion(0))
-            print(f"LLVM STRUCT ASSIGN: {nombre_struct}.{campo} = {valor}")
+            
             return valor
         
         # nums[i] = valor
@@ -224,7 +224,7 @@ class IRGenerator(gramatica_finalVisitor):
             nombre_struct = ctx.ID(0).getText()
             campo = ctx.ID(1).getText()
 
-            print(f"LLVM STRUCT ACCESS: {nombre_struct}.{campo}")
+            
 
             return ir.Constant(self.int_type, 0)
         

@@ -7,7 +7,8 @@ from parser_phase import ParserPhase
 from tac_generator import TACGenerator
 from visitor import Visitor
 from semantic_phase import SemanticPhase
-from ir_generator import IRGenerator  # <-- Importación del nuevo generador
+from ir_generator import IRGenerator 
+from optimizer import Optimizer
 
 
 class Pipeline:
@@ -21,7 +22,7 @@ class Pipeline:
         self.resultados = {}
         
         print("\n" + "="*60)
-        print("COMPILADOR - PIPELINE v3.0 (LLVM ENABLED)")
+        print("COMPILADOR - PIPELINE")
         print("="*60)
         
         if not self._fase_lexica(codigo):
@@ -36,11 +37,13 @@ class Pipeline:
         if not self._fase_tac():
             return self._resumen()
         
-        # --- NUEVA FASE DE LLVM ---
         if not self._fase_llvm():
             return self._resumen()
         
         self._fase_ejecucion()
+
+        if not self._fase_optimizacion_o3():
+            return self._resumen()
         
         return self._resumen()
     
@@ -133,6 +136,7 @@ class Pipeline:
             self.resultados["llvm"] = {"exitoso": False, "tiempo_ms": (time.time() - inicio) * 1000}
             print(f"  Error: {e}")
             return False
+        
 
     def _fase_ejecucion(self):
         print("\n[FASE 6] Ejecución (Interpreter Mode)")
@@ -153,6 +157,46 @@ class Pipeline:
             print(f"  Error: {e}")
             return False
     
+    def _fase_optimizacion_o3(self):
+        print("\n[FASE 7] Optimización LLVM O3")
+        print("-" * 40)
+        inicio = time.time()
+
+        try:
+            with open("salida.ll", "r", encoding="utf-8") as f:
+                ir_original = f.read()
+
+            optimizer = Optimizer()
+            ir_optimizado, metricas = optimizer.optimizar_o3(ir_original)
+
+            with open("salida.opt.ll", "w", encoding="utf-8") as f:
+                f.write(ir_optimizado)
+
+            tiempo = (time.time() - inicio) * 1000
+
+            self.resultados["optimizacion_o3"] = {
+                "exitoso": True,
+                "tiempo_ms": tiempo,
+                "metricas": metricas
+            }
+
+            print(f"  Nice :D {tiempo:.2f} ms - Archivo: salida.opt.ll")
+            print("  Métricas O3:")
+            print(f"    Instrucciones antes   : {metricas['instrucciones_antes']}")
+            print(f"    Instrucciones después : {metricas['instrucciones_despues']}")
+            print(f"    Reducción             : {metricas['reduccion_porcentaje']}%")
+
+            return True
+
+        except Exception as e:
+            self.error_handler.error_ejecucion(0, 0, str(e))
+            self.resultados["optimizacion_o3"] = {
+                "exitoso": False,
+                "tiempo_ms": (time.time() - inicio) * 1000
+            }
+            print(f"  Error: {e}")
+            return False
+
     def _resumen(self):
         print("\n" + "="*60)
         print("RESUMEN")

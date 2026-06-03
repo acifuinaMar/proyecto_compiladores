@@ -1,0 +1,46 @@
+--- IR original
++++ IR manual optimizado
+@@ -1,34 +1,15 @@
+-; ModuleID = "compilador_umg_final"
++; ModuleID = '<string>'
++source_filename = "<string>"
+ target triple = "x86_64-unknown-linux-gnu"
+-target datalayout = ""
+ 
+-declare i32 @"printf"(i8* %".1", ...)
++@fstr_128414830365280 = internal constant [4 x i8] c"%d\0A\00"
++@fstr_128414830366848 = internal constant [4 x i8] c"%d\0A\00"
+ 
+-define i32 @"main"()
+-{
++declare i32 @printf(ptr, ...)
++
++define i32 @main() {
+ entry:
+-  %"p" = alloca i32
+-  %"nums" = alloca [3 x i32]
+-  %".2" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 0
+-  store i32 1, i32* %".2"
+-  %".4" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+-  store i32 2, i32* %".4"
+-  %".6" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 2
+-  store i32 3, i32* %".6"
+-  %".8" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 0
+-  store i32 0, i32* %".8"
+-  %".10" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+-  store i32 0, i32* %".10"
+-  %".12" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 0
+-  %"arr_load_nums" = load i32, i32* %".12"
+-  %".13" = bitcast [4 x i8]* @"fstr_128414830365280" to i8*
+-  %".14" = call i32 (i8*, ...) @"printf"(i8* %".13", i32 %"arr_load_nums")
+-  %".15" = getelementptr [3 x i32], [3 x i32]* %"nums", i32 0, i32 1
+-  %"arr_load_nums.1" = load i32, i32* %".15"
+-  %".16" = bitcast [4 x i8]* @"fstr_128414830366848" to i8*
+-  %".17" = call i32 (i8*, ...) @"printf"(i8* %".16", i32 %"arr_load_nums.1")
++  %.14 = call i32 (ptr, ...) @printf(ptr noundef nonnull dereferenceable(1) @fstr_128414830365280, i32 0)
++  %.17 = call i32 (ptr, ...) @printf(ptr noundef nonnull dereferenceable(1) @fstr_128414830366848, i32 0)
+   ret i32 0
+ }
+-
+-@"fstr_128414830365280" = internal constant [4 x i8] c"%d\0a\00"
+-@"fstr_128414830366848" = internal constant [4 x i8] c"%d\0a\00"
