@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import scrolledtext, ttk, messagebox
 import io
 import subprocess
+from ir_manual import IRManual
 from contextlib import redirect_stdout
 
 from pipeline import Pipeline
@@ -49,6 +50,46 @@ class CompiladorProIDE:
                                    command=self.clear_all)
         self.btn_clear.pack(side=tk.LEFT)
 
+                # Controles IR Manual
+        manual_frame = tk.Frame(left_frame, bg="#f5f6f7")
+        manual_frame.pack(fill=tk.X, pady=(8, 5))
+
+        tk.Label(
+            manual_frame,
+            text="IR Manual:",
+            bg="#f5f6f7",
+            font=("Segoe UI", 9, "bold")
+        ).pack(side=tk.LEFT, padx=(0, 5))
+
+        self.combo_pass = ttk.Combobox(
+            manual_frame,
+            values=[
+                "mem2reg",
+                "instcombine",
+                "simplifycfg",
+                "dce",
+                "loop-unroll",
+                "mem2reg,instcombine,simplifycfg,dce"
+            ],
+            state="readonly",
+            width=28
+        )
+        self.combo_pass.current(0)
+        self.combo_pass.pack(side=tk.LEFT, padx=(0, 5))
+
+        self.btn_ir_manual = tk.Button(
+            manual_frame,
+            text="Aplicar",
+            bg="#9b59b6",
+            fg="white",
+            font=("Segoe UI", 9, "bold"),
+            relief="flat",
+            padx=10,
+            pady=5,
+            command=self.run_ir_manual
+        )
+        self.btn_ir_manual.pack(side=tk.LEFT)
+
         # Tabla de Tiempos
         tk.Label(left_frame, text="ESTADO DEL PIPELINE", bg="#f5f6f7", font=("Segoe UI", 9, "bold")).pack(anchor="w", pady=(10, 0))
         self.tree = ttk.Treeview(left_frame, columns=("Fase", "Resultado", "Tiempo"), show='headings', height=6)
@@ -95,6 +136,60 @@ class CompiladorProIDE:
     def update_tab(self, widget, content):
         widget.delete('1.0', tk.END)
         widget.insert(tk.END, content)
+
+    def run_ir_manual(self):
+        try:
+            if not self.combo_pass.get():
+                messagebox.showwarning("IR Manual", "Seleccione un pass.")
+                return
+
+            try:
+                with open("salida.ll", "r", encoding="utf-8") as f:
+                    ir_code = f.read()
+            except FileNotFoundError:
+                messagebox.showwarning(
+                    "IR Manual",
+                    "Primero ejecute el pipeline para generar salida.ll."
+                )
+                return
+
+            seleccion = self.combo_pass.get()
+
+            if "," in seleccion:
+                passes = [p.strip() for p in seleccion.split(",")]
+            else:
+                passes = [seleccion]
+
+            manual = IRManual()
+            ir_opt, metricas, diff = manual.aplicar_passes(ir_code, passes)
+
+            with open("salida.manual.ll", "w", encoding="utf-8") as f:
+                f.write(ir_opt)
+
+            with open("salida.manual.diff", "w", encoding="utf-8") as f:
+                f.write(diff)
+
+            resumen = (
+                f"; IR Manual\n"
+                f"; Passes aplicados: {', '.join(metricas['passes_aplicados'])}\n"
+                f"; Instrucciones antes: {metricas['instrucciones_antes']}\n"
+                f"; Instrucciones después: {metricas['instrucciones_despues']}\n"
+                f"; Reducción: {metricas['reduccion_porcentaje']}%\n\n"
+            )
+
+            self.update_tab(self.txt_ir_manual, resumen + ir_opt)
+            self.update_tab(self.txt_ir_diff, diff)
+
+            self.tabs.select(5)
+
+            messagebox.showinfo(
+                "IR Manual",
+                f"Pass aplicado correctamente.\n"
+                f"Reducción: {metricas['reduccion_porcentaje']}%"
+            )
+
+        except Exception as e:
+            messagebox.showerror("Error IR Manual", str(e))
 
     def run_pipeline(self):
         self.clear_all()
