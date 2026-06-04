@@ -1,0 +1,20 @@
+program {
+    struct Punto {
+        int x;
+        int y;
+    }
+
+    Punto p;
+
+    p.x = 3;
+    p.y = 4;
+
+    int px = p.x;
+    int py = p.y;
+
+    int dist = px * px + py * py;
+
+    print(px);
+    print(py);
+    print(dist);
+}
